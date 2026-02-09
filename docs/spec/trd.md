@@ -51,6 +51,14 @@
 - 요청 DTO 단에서 Validation 수행
 - 도메인 로직은 Validation 결과를 전제로 한다
 
+Validation Error 응답 (MVP 고정)
+
+- DTO Validation 실패는 공통 Error Envelope로 응답한다
+- 에러 코드: `COMMON_VALIDATION_FAILED`
+- `error.details`는 다음 형식의 문자열 배열이다:
+    - `"{field}: {message}"`
+    - 예: `"title: must not be blank"`
+
 ---
 
 ### 2.7 Authentication (MVP)
@@ -60,6 +68,12 @@
 - 인증 목적:
     - “본인 리소스 접근 보장”
 - 휴대폰 본인 인증 / 실명 인증은 MVP 범위에서 제외
+
+로그인 구현 범위 (MVP 고정)
+
+- 로그인은 **실제 인증이 아닌 더미 로그인**으로 구현한다
+- 로그인은 이메일 기반으로만 동작하며, 비밀번호/휴대폰/실명 인증은 제공하지 않는다
+- 로그인 성공 시 세션이 생성되어 이후 요청에서 인증이 유지된다
 
 ---
 
@@ -89,7 +103,7 @@
 "error":{
 "code":"MEETUP_UPDATE_FORBIDDEN",
 "message":"권한이 없습니다",
-"details":[]
+"details":["field: message"]
 }
 }
 

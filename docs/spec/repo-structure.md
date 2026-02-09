@@ -189,6 +189,37 @@ docs/
 
 ---
 
+## 9.1 Git Worktree Ownership Policy (병렬 개발 규칙)
+
+본 프로젝트는 병렬 개발을 위해 Git worktree 사용을 허용한다.
+
+### Ownership Rules
+
+- 각 worktree(브랜치)는 **소유 경로(폴더)** 가 명확히 정의되어야 한다
+- worktree는 본인의 소유 경로 외 파일/폴더를 수정하지 않는다
+- 공통 파일(빌드/설정/common 등)이 필요한 경우, 공통 전담 브랜치(예: `be-base`)에서 선반영한 뒤 worktree들이 따라온다
+
+### Forbidden Paths
+
+- 도메인 worktree는 다음 경로를 수정하지 않는다:
+    - `backend/build.gradle.kts`
+    - `backend/settings.gradle.kts`
+    - `backend/src/main/resources/**`
+    - `backend/src/main/java/com/example/walkservice/common/**`
+- Frontend worktree는 `backend/**`, `templates/**`, `docs/**`를 수정하지 않는다
+
+### Integration Flow
+
+- 병렬 작업 브랜치는 통합 브랜치(예: `integrate`)로 먼저 머지하여 충돌을 1차 해결한다
+- `integrate`가 안정화되면 `main`으로 머지한다
+- `integrate`는 `main` 반영 이후 삭제한다
+
+### Workspace Note
+
+- worktree 디렉토리는 repository root 외부에 생성하는 것을 권장한다 (root 구조 고정 규칙과 충돌 방지)
+
+---
+
 ## 10. Declaration
 
 본 문서는 본 프로젝트의 **Repository 구조에 대한 최종 기준**이다.

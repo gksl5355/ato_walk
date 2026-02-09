@@ -2,6 +2,10 @@
 - This repo contains binding specs under `docs/spec/` and reference implementations under `templates/`.
 - Agents MUST follow `docs/spec/**` and copy patterns from `templates/**`.
 
+## Git Worktree Policy (Important)
+- When working in parallel Git worktrees, agents MUST follow the ownership rules in `docs/spec/repo-structure.md`.
+- A worktree MUST only modify its owned path(s). If a change is needed in shared paths (e.g., backend build files, `common/**`, resources), route it through the designated baseline/integration branch instead of editing from a domain worktree.
+
 ## Source Of Truth
 - Authoritative spec entrypoint: `docs/spec/spec.md`
 - Document priority order (highest wins on conflicts):
