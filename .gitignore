@@ -1,5 +1,6 @@
 # Compiled class file
 *.class
+.token
 
 # Log file
 *.log
