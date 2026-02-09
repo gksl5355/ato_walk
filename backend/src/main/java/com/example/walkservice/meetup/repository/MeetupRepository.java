@@ -32,7 +32,7 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long> {
                     """,
             nativeQuery = true
     )
-    Page<Meetup> findAllRecruitingWithDogFilters(
+    Page<Meetup> findAllRecruitingWithHostDogFilters(
             @Param("status") String status,
             @Param("dogSize") String dogSize,
             @Param("sociabilityLevel") String sociabilityLevel,

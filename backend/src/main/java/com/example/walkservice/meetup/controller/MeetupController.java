@@ -1,5 +1,6 @@
 package com.example.walkservice.meetup.controller;
 
+import com.example.walkservice.common.exception.ApiException;
 import com.example.walkservice.common.response.ApiResponse;
 import com.example.walkservice.common.security.CurrentUserProvider;
 import com.example.walkservice.meetup.dto.CreateMeetupRequest;
@@ -7,6 +8,7 @@ import com.example.walkservice.meetup.dto.MeetupResponse;
 import com.example.walkservice.meetup.dto.UpdateMeetupRequest;
 import com.example.walkservice.meetup.service.MeetupService;
 import jakarta.validation.Valid;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/meetups")
 public class MeetupController {
+
+    private static final Set<String> DOG_SIZES = Set.of("SMALL", "MEDIUM", "LARGE");
+    private static final Set<String> LEVELS = Set.of("LOW", "MEDIUM", "HIGH");
 
     private final MeetupService meetupService;
     private final CurrentUserProvider currentUserProvider;
@@ -75,9 +80,9 @@ public class MeetupController {
         return ApiResponse.success(
                 meetupService.listRecruitingMeetups(
                         pageable,
-                        normalizeEnumParam(dogSize),
-                        normalizeEnumParam(sociabilityLevel),
-                        normalizeEnumParam(reactivityLevel)
+                        normalizeDogSize(dogSize),
+                        normalizeLevel("sociabilityLevel", sociabilityLevel),
+                        normalizeLevel("reactivityLevel", reactivityLevel)
                 )
         );
     }
@@ -86,7 +91,29 @@ public class MeetupController {
         return currentUserProvider.currentUser().userId();
     }
 
-    private String normalizeEnumParam(String value) {
+    private String normalizeDogSize(String value) {
+        String normalized = normalizeOptionalEnumValue(value);
+        if (normalized == null) {
+            return null;
+        }
+        if (!DOG_SIZES.contains(normalized)) {
+            throw new ApiException("MEETUP_LIST_INVALID_FILTER", "Invalid dogSize");
+        }
+        return normalized;
+    }
+
+    private String normalizeLevel(String field, String value) {
+        String normalized = normalizeOptionalEnumValue(value);
+        if (normalized == null) {
+            return null;
+        }
+        if (!LEVELS.contains(normalized)) {
+            throw new ApiException("MEETUP_LIST_INVALID_FILTER", "Invalid " + field);
+        }
+        return normalized;
+    }
+
+    private String normalizeOptionalEnumValue(String value) {
         if (value == null) {
             return null;
         }

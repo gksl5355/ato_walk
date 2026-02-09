@@ -95,7 +95,7 @@ public class MeetupService {
             String reactivityLevel
     ) {
         return meetupRepository
-                .findAllRecruitingWithDogFilters(
+                .findAllRecruitingWithHostDogFilters(
                         MeetupStatus.RECRUITING.name(),
                         dogSize,
                         sociabilityLevel,
