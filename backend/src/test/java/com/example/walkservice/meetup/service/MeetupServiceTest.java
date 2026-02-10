@@ -3,7 +3,8 @@ package com.example.walkservice.meetup.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.example.walkservice.common.exception.ApiException;
@@ -12,17 +13,31 @@ import com.example.walkservice.meetup.dto.UpdateMeetupRequest;
 import com.example.walkservice.meetup.entity.Meetup;
 import com.example.walkservice.meetup.entity.MeetupStatus;
 import com.example.walkservice.meetup.repository.MeetupRepository;
+import com.example.walkservice.meetup.repository.UserStatusLookupRepository;
 import java.lang.reflect.Field;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class MeetupServiceTest {
+
+    @Mock
+    private MeetupRepository meetupRepository;
+
+    @Mock
+    private UserStatusLookupRepository userStatusLookupRepository;
+
+    @InjectMocks
+    private MeetupService meetupService;
 
     @Test
     void cancelMeetup_requiresHost() {
-        MeetupRepository repo = mock(MeetupRepository.class);
-        MeetupService service = new MeetupService(repo);
+        given(userStatusLookupRepository.findStatusByUserId(20L)).willReturn("ACTIVE");
 
         Meetup meetup = new Meetup(
                 10L,
@@ -34,17 +49,16 @@ class MeetupServiceTest {
                 MeetupStatus.RECRUITING,
                 OffsetDateTime.now()
         );
-        when(repo.findById(1L)).thenReturn(Optional.of(meetup));
+        when(meetupRepository.findById(1L)).thenReturn(Optional.of(meetup));
 
-        assertThatThrownBy(() -> service.cancelMeetup(20L, 1L))
+        assertThatThrownBy(() -> meetupService.cancelMeetup(20L, 1L))
                 .isInstanceOf(ApiException.class)
                 .hasMessage("Only host can cancel meetup");
     }
 
     @Test
     void endMeetup_changesStatus() {
-        MeetupRepository repo = mock(MeetupRepository.class);
-        MeetupService service = new MeetupService(repo);
+        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
 
         Meetup meetup = new Meetup(
                 10L,
@@ -56,16 +70,15 @@ class MeetupServiceTest {
                 MeetupStatus.RECRUITING,
                 OffsetDateTime.now()
         );
-        when(repo.findById(1L)).thenReturn(Optional.of(meetup));
+        when(meetupRepository.findById(1L)).thenReturn(Optional.of(meetup));
 
-        service.endMeetup(10L, 1L);
+        meetupService.endMeetup(10L, 1L);
         assertThat(meetup.getStatus()).isEqualTo(MeetupStatus.ENDED);
     }
 
     @Test
     void cancelMeetup_requiresRecruitingState() {
-        MeetupRepository repo = mock(MeetupRepository.class);
-        MeetupService service = new MeetupService(repo);
+        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
 
         Meetup meetup = new Meetup(
                 10L,
@@ -77,17 +90,16 @@ class MeetupServiceTest {
                 MeetupStatus.ENDED,
                 OffsetDateTime.now()
         );
-        when(repo.findById(1L)).thenReturn(Optional.of(meetup));
+        when(meetupRepository.findById(1L)).thenReturn(Optional.of(meetup));
 
-        assertThatThrownBy(() -> service.cancelMeetup(10L, 1L))
+        assertThatThrownBy(() -> meetupService.cancelMeetup(10L, 1L))
                 .isInstanceOf(ApiException.class)
                 .hasMessage("Meetup can only be canceled while recruiting");
     }
 
     @Test
     void endMeetup_requiresRecruitingState() {
-        MeetupRepository repo = mock(MeetupRepository.class);
-        MeetupService service = new MeetupService(repo);
+        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
 
         Meetup meetup = new Meetup(
                 10L,
@@ -99,17 +111,16 @@ class MeetupServiceTest {
                 MeetupStatus.CANCELED,
                 OffsetDateTime.now()
         );
-        when(repo.findById(1L)).thenReturn(Optional.of(meetup));
+        when(meetupRepository.findById(1L)).thenReturn(Optional.of(meetup));
 
-        assertThatThrownBy(() -> service.endMeetup(10L, 1L))
+        assertThatThrownBy(() -> meetupService.endMeetup(10L, 1L))
                 .isInstanceOf(ApiException.class)
                 .hasMessage("Meetup can only be ended while recruiting");
     }
 
     @Test
     void updateMeetup_requiresRecruitingState() {
-        MeetupRepository repo = mock(MeetupRepository.class);
-        MeetupService service = new MeetupService(repo);
+        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
 
         Meetup meetup = new Meetup(
                 10L,
@@ -121,7 +132,7 @@ class MeetupServiceTest {
                 MeetupStatus.ENDED,
                 OffsetDateTime.now()
         );
-        when(repo.findById(1L)).thenReturn(Optional.of(meetup));
+        when(meetupRepository.findById(1L)).thenReturn(Optional.of(meetup));
 
         UpdateMeetupRequest request = new UpdateMeetupRequest(
                 "t2",
@@ -131,15 +142,14 @@ class MeetupServiceTest {
                 OffsetDateTime.now().plusDays(2)
         );
 
-        assertThatThrownBy(() -> service.updateMeetup(10L, 1L, request))
+        assertThatThrownBy(() -> meetupService.updateMeetup(10L, 1L, request))
                 .isInstanceOf(ApiException.class)
                 .hasMessage("Meetup can only be updated while recruiting");
     }
 
     @Test
     void createMeetup_returnsSavedId() throws Exception {
-        MeetupRepository repo = mock(MeetupRepository.class);
-        MeetupService service = new MeetupService(repo);
+        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
 
         Meetup saved = new Meetup(
                 10L,
@@ -153,7 +163,7 @@ class MeetupServiceTest {
         );
         setId(saved, 99L);
 
-        when(repo.save(any(Meetup.class))).thenReturn(saved);
+        when(meetupRepository.save(any(Meetup.class))).thenReturn(saved);
 
         CreateMeetupRequest request = new CreateMeetupRequest(
                 "t",
@@ -163,7 +173,71 @@ class MeetupServiceTest {
                 OffsetDateTime.now().plusDays(1)
         );
 
-        assertThat(service.createMeetup(10L, request).getId()).isEqualTo(99L);
+        assertThat(meetupService.createMeetup(10L, request).getId()).isEqualTo(99L);
+    }
+
+    @Test
+    void createMeetup_blockedActor_throwsForbidden() {
+        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+
+        CreateMeetupRequest request = new CreateMeetupRequest(
+                "t",
+                null,
+                "loc",
+                3,
+                OffsetDateTime.now().plusDays(1)
+        );
+
+        ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                ApiException.class,
+                () -> meetupService.createMeetup(1L, request)
+        );
+        assertThat(ex.getCode()).isEqualTo("MEETUP_CREATE_FORBIDDEN");
+        verifyNoInteractions(meetupRepository);
+    }
+
+    @Test
+    void cancelMeetup_blockedActor_throwsForbidden() {
+        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+
+        ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                ApiException.class,
+                () -> meetupService.cancelMeetup(1L, 1L)
+        );
+        assertThat(ex.getCode()).isEqualTo("MEETUP_CANCEL_FORBIDDEN");
+        verifyNoInteractions(meetupRepository);
+    }
+
+    @Test
+    void endMeetup_blockedActor_throwsForbidden() {
+        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+
+        ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                ApiException.class,
+                () -> meetupService.endMeetup(1L, 1L)
+        );
+        assertThat(ex.getCode()).isEqualTo("MEETUP_END_FORBIDDEN");
+        verifyNoInteractions(meetupRepository);
+    }
+
+    @Test
+    void updateMeetup_blockedActor_throwsForbidden() {
+        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+
+        UpdateMeetupRequest request = new UpdateMeetupRequest(
+                "t2",
+                "d2",
+                "loc2",
+                5,
+                OffsetDateTime.now().plusDays(2)
+        );
+
+        ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
+                ApiException.class,
+                () -> meetupService.updateMeetup(1L, 1L, request)
+        );
+        assertThat(ex.getCode()).isEqualTo("MEETUP_UPDATE_FORBIDDEN");
+        verifyNoInteractions(meetupRepository);
     }
 
     private static void setId(Meetup meetup, Long id) throws Exception {
