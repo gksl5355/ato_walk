@@ -240,6 +240,42 @@ Validation Error 응답 (MVP 고정)
 
 ---
 
+### 5.4 Dog API (MVP)
+
+- Base Path: `/api/v1/dogs`
+
+Endpoints:
+
+- `POST /api/v1/dogs`
+    - 반려견 생성
+- `GET /api/v1/dogs`
+    - 본인 반려견 목록 조회 (Pagination)
+    - Query:
+        - `page` (default: 0)
+        - `size` (default: 20)
+- `GET /api/v1/dogs/{dogId}`
+    - 본인 반려견 단건 조회
+- `PUT /api/v1/dogs/{dogId}`
+    - 본인 반려견 수정
+- `DELETE /api/v1/dogs/{dogId}`
+    - 본인 반려견 삭제
+
+Authorization:
+
+- User / Dog: 본인만 접근 가능
+- BLOCKED 사용자는 쓰기/상태변경 액션을 수행할 수 없다 (Dog: create/update/delete 포함)
+
+Error Codes (예시):
+
+- `COMMON_VALIDATION_FAILED`
+- `DOG_FIND_NOT_FOUND`
+- `DOG_GET_FORBIDDEN`
+- `DOG_CREATE_FORBIDDEN`
+- `DOG_UPDATE_FORBIDDEN`
+- `DOG_DELETE_FORBIDDEN`
+
+---
+
 ## 6. Non-Goals 
 
 - 실시간 기능 (WebSocket, Push)
