@@ -15,12 +15,15 @@ import com.example.walkservice.dog.entity.DogSociabilityLevel;
 import com.example.walkservice.dog.repository.DogRepository;
 import com.example.walkservice.dog.repository.UserStatusLookupRepository;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class DogServiceTest {
@@ -83,5 +86,78 @@ class DogServiceTest {
 
         ApiException ex = assertThrows(ApiException.class, () -> dogService.updateDog(1L, 10L, request));
         assertEquals("DOG_UPDATE_FORBIDDEN", ex.getCode());
+    }
+
+    @Test
+    void getDog_notOwner_throwsForbidden() {
+        Dog dog = new Dog(
+                2L,
+                "name",
+                "breed",
+                DogSize.MEDIUM,
+                false,
+                DogSociabilityLevel.HIGH,
+                DogReactivityLevel.MEDIUM,
+                null,
+                OffsetDateTime.now()
+        );
+
+        given(dogRepository.findById(10L)).willReturn(Optional.of(dog));
+
+        ApiException ex = assertThrows(ApiException.class, () -> dogService.getDog(1L, 10L));
+        assertEquals("DOG_GET_FORBIDDEN", ex.getCode());
+    }
+
+    @Test
+    void deleteDog_blockedActor_throwsForbidden() {
+        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+
+        ApiException ex = assertThrows(ApiException.class, () -> dogService.deleteDog(1L, 10L));
+        assertEquals("DOG_DELETE_FORBIDDEN", ex.getCode());
+        then(dogRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
+    void deleteDog_notOwner_throwsForbidden() {
+        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("ACTIVE");
+
+        Dog dog = new Dog(
+                2L,
+                "name",
+                "breed",
+                DogSize.MEDIUM,
+                false,
+                DogSociabilityLevel.HIGH,
+                DogReactivityLevel.MEDIUM,
+                null,
+                OffsetDateTime.now()
+        );
+
+        given(dogRepository.findById(10L)).willReturn(Optional.of(dog));
+
+        ApiException ex = assertThrows(ApiException.class, () -> dogService.deleteDog(1L, 10L));
+        assertEquals("DOG_DELETE_FORBIDDEN", ex.getCode());
+    }
+
+    @Test
+    void listDogs_returnsPage() {
+        PageRequest pageable = PageRequest.of(0, 20);
+
+        Dog dog = new Dog(
+                1L,
+                "name",
+                "breed",
+                DogSize.MEDIUM,
+                false,
+                DogSociabilityLevel.HIGH,
+                DogReactivityLevel.MEDIUM,
+                null,
+                OffsetDateTime.now()
+        );
+
+        given(dogRepository.findAllByUserId(1L, pageable)).willReturn(new PageImpl<>(List.of(dog), pageable, 1));
+
+        assertEquals(1, dogService.listDogs(1L, pageable).getTotalElements());
+        then(dogRepository).should().findAllByUserId(1L, pageable);
     }
 }
