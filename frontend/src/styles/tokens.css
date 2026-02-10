@@ -1,0 +1,32 @@
+:root {
+  --c-ink: #1b1f23;
+  --c-ink-2: rgba(27, 31, 35, 0.72);
+  --c-line: rgba(27, 31, 35, 0.12);
+
+  --c-sky: #58a9e0;
+  --c-cloud: #eaf3fb;
+  --c-ribbon: #f6c338;
+  --c-fur: #e9d7b5;
+
+  --c-surface: rgba(255, 255, 255, 0.82);
+  --c-surface-2: rgba(255, 255, 255, 0.68);
+
+  --r-sm: 14px;
+  --r-md: 18px;
+  --r-lg: 24px;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+
+  --sh-1: 0 1px 0 rgba(27, 31, 35, 0.08), 0 18px 46px rgba(27, 31, 35, 0.12);
+  --sh-2: 0 1px 0 rgba(27, 31, 35, 0.08), 0 30px 80px rgba(27, 31, 35, 0.18);
+
+  --font-body: "Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-display: "Fredoka", system-ui, -apple-system, Segoe UI, sans-serif;
+}
