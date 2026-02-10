@@ -8,6 +8,8 @@ import com.example.walkservice.dog.entity.Dog;
 import com.example.walkservice.dog.repository.DogRepository;
 import com.example.walkservice.dog.repository.UserStatusLookupRepository;
 import java.time.OffsetDateTime;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,6 +67,36 @@ public class DogService {
         );
 
         return toResponse(dog);
+    }
+
+    @Transactional(readOnly = true)
+    public DogResponse getDog(Long actorUserId, Long dogId) {
+        Dog dog = dogRepository.findById(dogId)
+                .orElseThrow(() -> new ApiException("DOG_FIND_NOT_FOUND", "Dog not found"));
+
+        if (!dog.getUserId().equals(actorUserId)) {
+            throw new ApiException("DOG_GET_FORBIDDEN", "Only owner can access dog");
+        }
+
+        return toResponse(dog);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<DogResponse> listDogs(Long actorUserId, Pageable pageable) {
+        return dogRepository.findAllByUserId(actorUserId, pageable).map(this::toResponse);
+    }
+
+    public void deleteDog(Long actorUserId, Long dogId) {
+        ensureActorNotBlocked(actorUserId, "DOG_DELETE_FORBIDDEN");
+
+        Dog dog = dogRepository.findById(dogId)
+                .orElseThrow(() -> new ApiException("DOG_FIND_NOT_FOUND", "Dog not found"));
+
+        if (!dog.getUserId().equals(actorUserId)) {
+            throw new ApiException("DOG_DELETE_FORBIDDEN", "Only owner can delete dog");
+        }
+
+        dogRepository.delete(dog);
     }
 
     private void ensureActorNotBlocked(Long actorUserId, String forbiddenCode) {
