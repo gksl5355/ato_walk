@@ -11,6 +11,7 @@ import com.example.walkservice.common.security.BlockedWriteGuard;
 import com.example.walkservice.participation.dto.ParticipationResponse;
 import com.example.walkservice.participation.entity.Participation;
 import com.example.walkservice.participation.entity.ParticipationStatus;
+import com.example.walkservice.participation.repository.DogProfileLookupRepository;
 import com.example.walkservice.participation.repository.MeetupLookupRepository;
 import com.example.walkservice.participation.repository.ParticipationRepository;
 import java.lang.reflect.Field;
@@ -36,6 +37,9 @@ class ParticipationServiceTest {
     private MeetupLookupRepository meetupLookupRepository;
 
     @Mock
+    private DogProfileLookupRepository dogProfileLookupRepository;
+
+    @Mock
     private BlockedWriteGuard blockedWriteGuard;
 
     @InjectMocks
@@ -57,7 +61,7 @@ class ParticipationServiceTest {
 
     @Test
     void requestParticipation_meetupMissing_throwsNotFound() {
-        given(meetupLookupRepository.existsById(10L)).willReturn(false);
+        given(meetupLookupRepository.findHostUserId(10L)).willReturn(null);
 
         ApiException ex = (ApiException) org.junit.jupiter.api.Assertions.assertThrows(
                 ApiException.class,
@@ -65,6 +69,21 @@ class ParticipationServiceTest {
         );
         assertThat(ex.getCode()).isEqualTo("MEETUP_FIND_NOT_FOUND");
         then(participationRepository).shouldHaveNoInteractions();
+    }
+
+    @Test
+    void requestParticipation_alreadyApproved_throwsDuplicate() {
+        given(meetupLookupRepository.findHostUserId(1L)).willReturn(10L);
+        given(participationRepository.existsByMeetupIdAndUserIdAndStatus(1L, 20L, ParticipationStatus.REQUESTED))
+                .willReturn(false);
+        given(participationRepository.existsByMeetupIdAndUserIdAndStatus(1L, 20L, ParticipationStatus.APPROVED))
+                .willReturn(true);
+
+        ApiException ex = (ApiException) org.junit.jupiter.api.Assertions.assertThrows(
+                ApiException.class,
+                () -> participationService.requestParticipation(20L, 1L)
+        );
+        assertThat(ex.getCode()).isEqualTo("PARTICIPATION_REQUEST_DUPLICATE");
     }
 
     @Test

@@ -9,13 +9,34 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import HomePage from '@/pages/HomePage.vue'
 import MeetupsPage from '@/pages/MeetupsPage.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useToastStore } from '@/stores/toasts'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', name: 'home', component: HomePage },
-    { path: '/meetups', name: 'meetups', component: MeetupsPage },
+    { path: '/meetups', name: 'meetups', component: MeetupsPage, meta: { requiresAuth: true } },
   ],
 })
 
-createApp(App).use(createPinia()).use(router).mount('#app')
+const app = createApp(App)
+const pinia = createPinia()
+
+app.use(pinia)
+
+const auth = useAuthStore(pinia)
+const toasts = useToastStore(pinia)
+
+await auth.hydrate()
+
+router.beforeEach((to) => {
+  if (to.meta.requiresAuth && !auth.isLoggedIn) {
+    toasts.push({ tone: 'info', title: 'Login needed', message: 'Please login first.' })
+    return { path: '/' }
+  }
+  return true
+})
+
+app.use(router)
+app.mount('#app')

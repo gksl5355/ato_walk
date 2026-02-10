@@ -1,54 +1,53 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-const STORAGE_KEY = 'ato_walk_auth'
-
-type StoredAuth = {
-  email: string
-}
-
-function readStoredAuth(): StoredAuth | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw) as unknown
-    if (typeof parsed !== 'object' || parsed === null) {
-      return null
-    }
-    const p = parsed as { email?: unknown }
-    if (typeof p.email !== 'string' || p.email.trim() === '') {
-      return null
-    }
-    return { email: p.email }
-  } catch {
-    return null
-  }
-}
-
-function writeStoredAuth(value: StoredAuth | null) {
-  if (!value) {
-    localStorage.removeItem(STORAGE_KEY)
-    return
-  }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
-}
+import { getMe, login as loginApi, logout as logoutApi, signup as signupApi, type SignupRequest, type User } from '@/api/auth'
+import { toApiClientError } from '@/api/http'
 
 export const useAuthStore = defineStore('auth', () => {
-  const stored = readStoredAuth()
-  const email = ref<string>(stored?.email ?? '')
-  const isLoggedIn = computed(() => email.value.trim().length > 0)
+  const me = ref<User | null>(null)
+  const hydrating = ref(false)
 
-  function login(nextEmail: string) {
-    email.value = nextEmail.trim()
-    writeStoredAuth({ email: email.value })
+  const email = computed(() => me.value?.email ?? '')
+  const userId = computed(() => me.value?.id ?? null)
+  const isLoggedIn = computed(() => me.value !== null)
+
+  function clearAuthState() {
+    me.value = null
   }
 
-  function logout() {
-    email.value = ''
-    writeStoredAuth(null)
+  async function hydrate() {
+    hydrating.value = true
+    try {
+      me.value = await getMe()
+      return true
+    } catch (e) {
+      const err = toApiClientError(e)
+      if (err.code === 'COMMON_AUTH_REQUIRED') {
+        clearAuthState()
+        return false
+      }
+      throw err
+    } finally {
+      hydrating.value = false
+    }
   }
 
-  return { email, isLoggedIn, login, logout }
+  async function login(emailValue: string, password: string) {
+    me.value = await loginApi({ email: emailValue.trim(), password })
+  }
+
+  async function signup(req: SignupRequest) {
+    me.value = await signupApi(req)
+  }
+
+  async function logout() {
+    try {
+      await logoutApi()
+    } finally {
+      clearAuthState()
+    }
+  }
+
+  return { me, email, userId, isLoggedIn, hydrating, hydrate, login, signup, logout, clearAuthState }
 })

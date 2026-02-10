@@ -20,40 +20,91 @@
     <div class="hero__art" aria-hidden="true">
       <div class="hero__cloud hero__cloud--a" />
       <div class="hero__cloud hero__cloud--b" />
+      <img class="hero__paw" :src="pawUrl" alt="" />
       <div class="hero__frame">
         <img class="hero__puppy" :src="puppyUrl" alt="" />
       </div>
-      <div class="hero__sticker hero__sticker--sun">Friendly meetups</div>
-      <div class="hero__sticker hero__sticker--ribbon">Clear steps</div>
     </div>
   </section>
 
   <section ref="authSection" class="auth">
     <UiCard class="auth__card">
       <div class="auth__head">
-        <h2 class="auth__title">Welcome back</h2>
-        <p class="auth__note">Quick entry for now. You can change this anytime.</p>
+        <h2 class="auth__title">Join Ato Walk</h2>
+        <p class="auth__note">Sign up with dog survey, or log in with your account.</p>
       </div>
 
-      <div class="auth__form">
-        <UiInput v-model="email" label="Email" type="email" placeholder="you@domain.com" />
-        <div class="auth__actions">
-          <UiButton :disabled="email.trim().length === 0" @click="onLogin">Continue</UiButton>
-          <UiButton variant="ghost" :disabled="!auth.isLoggedIn" @click="auth.logout">Logout</UiButton>
-        </div>
+      <div class="auth__tabs">
+        <UiButton size="sm" :variant="mode === 'login' ? 'primary' : 'ghost'" @click="mode = 'login'">Login</UiButton>
+        <UiButton size="sm" :variant="mode === 'signup' ? 'primary' : 'ghost'" @click="mode = 'signup'">Sign up</UiButton>
       </div>
+
+      <form v-if="mode === 'login'" class="auth__form" @submit.prevent="onLogin">
+        <UiInput v-model="loginForm.email" label="Email" type="email" placeholder="ato@ato.com" />
+        <UiInput v-model="loginForm.password" label="Password" type="password" placeholder="1234" />
+        <div class="auth__actions">
+          <UiButton type="submit" :disabled="submitting">{{ submitting ? 'Logging in...' : 'Login' }}</UiButton>
+          <UiButton variant="ghost" :disabled="!auth.isLoggedIn || submitting" @click="onLogout">Logout</UiButton>
+        </div>
+      </form>
+
+      <form v-else class="auth__form" @submit.prevent="onSignup">
+        <div class="survey">
+          <h3 class="survey__title">Dog survey</h3>
+          <UiInput v-model="signupForm.dogName" label="Dog name" placeholder="Ato" />
+          <UiInput v-model="signupForm.dogBreed" label="Breed" placeholder="Pomeranian" />
+
+          <div class="survey__grid">
+            <UiSelect v-model="signupForm.dogSize" label="Size">
+              <option value="SMALL">SMALL</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LARGE">LARGE</option>
+            </UiSelect>
+            <UiSelect v-model="signupForm.dogNeutered" label="Neutered">
+              <option value="true">YES</option>
+              <option value="false">NO</option>
+            </UiSelect>
+            <UiSelect v-model="signupForm.dogSociabilityLevel" label="Sociability">
+              <option value="LOW">LOW</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="HIGH">HIGH</option>
+            </UiSelect>
+            <UiSelect v-model="signupForm.dogReactivityLevel" label="Reactivity">
+              <option value="LOW">LOW</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="HIGH">HIGH</option>
+            </UiSelect>
+          </div>
+
+          <UiTextarea v-model="signupForm.dogNotes" label="Notes (optional)" placeholder="Anything to share" />
+        </div>
+
+        <div class="account">
+          <h3 class="survey__title">Account</h3>
+          <UiInput v-model="signupForm.email" label="Email" type="email" placeholder="you@domain.com" />
+          <UiInput v-model="signupForm.password" label="Password" type="password" placeholder="At least 4 chars" />
+        </div>
+
+        <div class="auth__actions">
+          <UiButton type="submit" :disabled="submitting">{{ submitting ? 'Signing up...' : 'Sign up' }}</UiButton>
+        </div>
+      </form>
     </UiCard>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import puppyUrl from '@/assets/puppy.png'
+import pawUrl from '@/assets/paw.png'
+import { toApiClientError } from '@/api/http'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiInput from '@/components/ui/UiInput.vue'
+import UiSelect from '@/components/ui/UiSelect.vue'
+import UiTextarea from '@/components/ui/UiTextarea.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toasts'
 
@@ -61,8 +112,26 @@ const router = useRouter()
 const auth = useAuthStore()
 const toasts = useToastStore()
 
-const email = ref(auth.email)
+const mode = ref<'login' | 'signup'>('login')
+const submitting = ref(false)
 const authSection = ref<HTMLElement | null>(null)
+
+const loginForm = reactive({
+  email: 'ato@ato.com',
+  password: '1234',
+})
+
+const signupForm = reactive({
+  dogName: '',
+  dogBreed: '',
+  dogSize: 'SMALL',
+  dogNeutered: 'true',
+  dogSociabilityLevel: 'MEDIUM',
+  dogReactivityLevel: 'LOW',
+  dogNotes: '',
+  email: '',
+  password: '',
+})
 
 function scrollToAuth() {
   authSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -72,9 +141,56 @@ function goMeetups() {
   router.push('/meetups')
 }
 
-function onLogin() {
-  auth.login(email.value)
-  toasts.push({ tone: 'success', title: 'Logged in', message: 'Welcome.' })
+async function onLogin() {
+  submitting.value = true
+  try {
+    await auth.login(loginForm.email, loginForm.password)
+    toasts.push({ tone: 'success', title: 'Logged in', message: 'Welcome back.' })
+    await router.push('/meetups')
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function onSignup() {
+  submitting.value = true
+  try {
+    await auth.signup({
+      email: signupForm.email,
+      password: signupForm.password,
+      dogName: signupForm.dogName,
+      dogBreed: signupForm.dogBreed,
+      dogSize: signupForm.dogSize as 'SMALL' | 'MEDIUM' | 'LARGE',
+      dogNeutered: signupForm.dogNeutered === 'true',
+      dogSociabilityLevel: signupForm.dogSociabilityLevel as 'LOW' | 'MEDIUM' | 'HIGH',
+      dogReactivityLevel: signupForm.dogReactivityLevel as 'LOW' | 'MEDIUM' | 'HIGH',
+      dogNotes: signupForm.dogNotes.trim() || undefined,
+    })
+    toasts.push({ tone: 'success', title: 'Signed up', message: 'Account created.' })
+    await router.push('/meetups')
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  } finally {
+    submitting.value = false
+  }
+}
+
+async function onLogout() {
+  submitting.value = true
+  try {
+    await auth.logout()
+    toasts.push({ tone: 'success', title: 'Logged out', message: 'Session ended.' })
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  } finally {
+    submitting.value = false
+    await router.push('/')
+  }
 }
 </script>
 
@@ -101,13 +217,13 @@ function onLogin() {
 }
 
 .hero__titleAccent {
-  background: linear-gradient(180deg, rgba(88, 169, 224, 0.0), rgba(88, 169, 224, 0.26));
+  background: linear-gradient(180deg, rgba(88, 169, 224, 0), rgba(88, 169, 224, 0.26));
   border-radius: 12px;
   padding: 0 8px;
 }
 
 .hero__titleAccent2 {
-  background: linear-gradient(180deg, rgba(246, 195, 56, 0.0), rgba(246, 195, 56, 0.28));
+  background: linear-gradient(180deg, rgba(246, 195, 56, 0), rgba(246, 195, 56, 0.28));
   border-radius: 12px;
   padding: 0 8px;
 }
@@ -139,17 +255,19 @@ function onLogin() {
   width: min(360px, 100%);
   aspect-ratio: 1 / 1.1;
   border-radius: 40px;
-  background: rgba(255, 255, 255, 0.65);
+  background: linear-gradient(180deg, #dbeeff 0%, #cfe6fa 100%);
   border: 1px solid rgba(27, 31, 35, 0.12);
   box-shadow: var(--sh-2);
   overflow: hidden;
 }
 
 .hero__puppy {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: translateY(-4%);
+  object-position: center center;
+  transform: scale(1.08);
 }
 
 .hero__cloud {
@@ -158,7 +276,6 @@ function onLogin() {
   height: 130px;
   background: radial-gradient(circle at 30% 30%, rgba(234, 243, 251, 1), rgba(234, 243, 251, 0.35));
   border-radius: 999px;
-  filter: blur(0.2px);
   opacity: 0.9;
 }
 
@@ -174,25 +291,16 @@ function onLogin() {
   transform: rotate(8deg);
 }
 
-.hero__sticker {
+.hero__paw {
   position: absolute;
-  padding: 10px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.74);
-  border: 1px solid rgba(27, 31, 35, 0.12);
-  box-shadow: 0 1px 0 rgba(27, 31, 35, 0.08), 0 14px 30px rgba(27, 31, 35, 0.12);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.hero__sticker--sun {
-  left: 0;
-  top: 70%;
-}
-
-.hero__sticker--ribbon {
-  right: 0;
-  top: 14%;
+  right: 40px;
+  top: 12px;
+  width: 84px;
+  height: 84px;
+  transform: rotate(16deg);
+  z-index: 2;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(27, 31, 35, 0.14));
 }
 
 .auth {
@@ -220,9 +328,39 @@ function onLogin() {
   line-height: 1.5;
 }
 
+.auth__tabs {
+  display: flex;
+  gap: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
 .auth__form {
   display: grid;
   gap: var(--s-4);
+}
+
+.survey,
+.account {
+  display: grid;
+  gap: var(--s-3);
+}
+
+.survey__title {
+  margin: 0;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-size: 18px;
+}
+
+.survey__grid {
+  display: grid;
+  gap: var(--s-3);
+}
+
+@media (min-width: 780px) {
+  .survey__grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .auth__actions {

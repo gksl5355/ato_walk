@@ -8,6 +8,7 @@ public class ParticipationResponse {
     private final Long id;
     private final Long meetupId;
     private final Long userId;
+    private final String userNickname;
     private final ParticipationStatus status;
     private final OffsetDateTime createdAt;
 
@@ -15,12 +16,14 @@ public class ParticipationResponse {
             Long id,
             Long meetupId,
             Long userId,
+            String userNickname,
             ParticipationStatus status,
             OffsetDateTime createdAt
     ) {
         this.id = id;
         this.meetupId = meetupId;
         this.userId = userId;
+        this.userNickname = userNickname;
         this.status = status;
         this.createdAt = createdAt;
     }
@@ -35,6 +38,10 @@ public class ParticipationResponse {
 
     public Long getUserId() {
         return userId;
+    }
+
+    public String getUserNickname() {
+        return userNickname;
     }
 
     public ParticipationStatus getStatus() {

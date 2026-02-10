@@ -69,11 +69,13 @@ Validation Error 응답 (MVP 고정)
     - “본인 리소스 접근 보장”
 - 휴대폰 본인 인증 / 실명 인증은 MVP 범위에서 제외
 
-로그인 구현 범위 (MVP 고정)
+인증 구현 범위 (MVP 고정)
 
-- 로그인은 **실제 인증이 아닌 더미 로그인**으로 구현한다
-- 로그인은 이메일 기반으로만 동작하며, 비밀번호/휴대폰/실명 인증은 제공하지 않는다
+- 로그인/회원가입은 **더미 계정 기반**으로 구현한다
+- 로그인은 이메일 + 비밀번호로 동작한다
+- 회원가입은 이메일 + 비밀번호 + 반려견 설문을 한 번에 입력받아 User와 Dog를 함께 생성한다
 - 로그인 성공 시 세션이 생성되어 이후 요청에서 인증이 유지된다
+- 로그아웃은 세션 무효화로 처리한다
 
 ---
 
@@ -273,6 +275,35 @@ Error Codes (예시):
 - `DOG_CREATE_FORBIDDEN`
 - `DOG_UPDATE_FORBIDDEN`
 - `DOG_DELETE_FORBIDDEN`
+
+---
+
+### 5.5 Auth API (MVP)
+
+- Base Path: `/api/v1`
+
+Endpoints:
+
+- `POST /api/v1/signup`
+    - 회원가입
+    - Request Body: 이메일, 비밀번호, 반려견 설문
+    - 동작: User 생성 + Dog 생성 (단일 유스케이스)
+- `POST /api/v1/login`
+    - 로그인
+    - Request Body: 이메일, 비밀번호
+    - 성공 시 세션 인증 상태 시작
+- `POST /api/v1/logout`
+    - 로그아웃
+    - 현재 세션 무효화
+- `GET /api/v1/users/me`
+    - 현재 로그인 사용자 조회
+
+Auth Error Codes (예시):
+
+- `COMMON_VALIDATION_FAILED`
+- `USER_LOGIN_INVALID_CREDENTIALS`
+- `USER_SIGNUP_EMAIL_CONFLICT`
+- `COMMON_AUTH_REQUIRED`
 
 ---
 

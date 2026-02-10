@@ -11,5 +11,11 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
 
     Optional<Participation> findByIdAndMeetupId(Long id, Long meetupId);
 
+    Optional<Participation> findTopByMeetupIdAndUserIdOrderByCreatedAtDesc(Long meetupId, Long userId);
+
+    boolean existsByMeetupIdAndUserIdAndStatus(Long meetupId, Long userId, ParticipationStatus status);
+
     Page<Participation> findByMeetupIdAndStatusOrderByCreatedAtDesc(Long meetupId, ParticipationStatus status, Pageable pageable);
+
+    Page<Participation> findByMeetupIdAndStatusOrderByCreatedAtAsc(Long meetupId, ParticipationStatus status, Pageable pageable);
 }

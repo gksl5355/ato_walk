@@ -32,6 +32,12 @@ public class ParticipationController {
         return ApiResponse.success(response);
     }
 
+    @GetMapping("/me")
+    public ApiResponse<ParticipationResponse> myParticipation(@PathVariable Long meetupId) {
+        ParticipationResponse response = participationService.getMyParticipation(currentUserId(), meetupId);
+        return ApiResponse.success(response);
+    }
+
     @GetMapping
     public ApiResponse<Page<ParticipationResponse>> listRequested(
             @PathVariable Long meetupId,
@@ -40,6 +46,16 @@ public class ParticipationController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return ApiResponse.success(participationService.listRequestedParticipations(currentUserId(), meetupId, pageable));
+    }
+
+    @GetMapping("/approved")
+    public ApiResponse<Page<ParticipationResponse>> listApproved(
+            @PathVariable Long meetupId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ApiResponse.success(participationService.listApprovedParticipations(meetupId, pageable));
     }
 
     @PostMapping("/{participationId}/approve")

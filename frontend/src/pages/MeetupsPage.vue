@@ -74,11 +74,11 @@
 
   <UiModal :open="modal.open" :title="modal.mode === 'create' ? 'Create meetup' : 'Edit meetup'" @close="closeModal">
     <form class="form" @submit.prevent="submitModal">
-      <UiInput v-model="form.title" label="Title" placeholder="Morning walk at the park" />
+      <UiInput v-model="form.title" label="Title" placeholder="Morning walk at the park" required />
       <UiTextarea v-model="form.description" label="Description (optional)" placeholder="Any notes for participants" />
-      <UiInput v-model="form.location" label="Location" placeholder="Gangnam, Seoul" />
-      <UiInput v-model="form.maxParticipants" label="Max participants" type="number" min="1" />
-      <UiInput v-model="form.scheduledAt" label="Scheduled at" type="datetime-local" />
+      <UiInput v-model="form.location" label="Location" placeholder="Gangnam, Seoul" required />
+      <UiInput v-model="form.maxParticipants" label="Max participants" type="number" min="1" required />
+      <UiInput v-model="form.scheduledAt" label="Scheduled at" type="datetime-local" required />
 
       <div class="form__actions">
         <UiButton type="submit" :disabled="modal.submitting">
@@ -111,7 +111,7 @@
 
         <p v-if="drawer.meetup.description" class="drawerDesc">{{ drawer.meetup.description }}</p>
 
-        <div class="drawerActions">
+        <div v-if="isDrawerHost" class="drawerActions">
           <UiButton variant="soft" @click="openEdit(drawer.meetup)">Edit</UiButton>
           <UiButton variant="ghost" :disabled="drawer.busy" @click="onCancel(drawer.meetup.id)">Cancel</UiButton>
           <UiButton variant="ghost" :disabled="drawer.busy" @click="onEnd(drawer.meetup.id)">End</UiButton>
@@ -120,10 +120,50 @@
 
       <section class="drawerBlock">
         <h3 class="drawerH">Participation</h3>
-        <p class="drawerMuted">UI is ready; wiring will happen once participation endpoints land.</p>
-        <div class="drawerActions">
-          <UiButton :disabled="true">Request to join (준비중)</UiButton>
-          <UiButton variant="ghost" :disabled="true">Approve / Reject (준비중)</UiButton>
+        <div class="drawerActions" v-if="canRequestJoin">
+          <UiButton :disabled="participation.busy" @click="onRequestParticipation(drawer.meetup.id)">
+            {{ participation.busy ? 'Requesting...' : 'Request to join' }}
+          </UiButton>
+        </div>
+
+        <p v-if="myParticipation?.status === 'REQUESTED'" class="drawerMuted">Your participation request is pending approval.</p>
+        <p v-if="myParticipation?.status === 'APPROVED'" class="drawerMuted">You are approved for this meetup.</p>
+        <p v-if="myParticipation?.status === 'REJECTED'" class="drawerMuted">Your previous request was rejected. You can request again.</p>
+
+        <div v-if="isDrawerHost" class="participationList">
+          <div v-if="participation.loading" class="drawerMuted">Loading requests...</div>
+          <div v-else-if="(participation.page?.content.length ?? 0) === 0" class="drawerMuted">No pending requests.</div>
+          <div v-else class="participationList__items">
+            <div v-for="item in participation.page?.content ?? []" :key="item.id" class="participationList__item">
+              <div>
+                <div class="participationList__user">{{ item.userNickname }}</div>
+                <div class="participationList__meta">{{ formatWhen(item.createdAt) }}</div>
+              </div>
+              <div class="drawerActions">
+                <UiButton size="sm" :disabled="participation.busy" @click="onApproveParticipation(item.id)">Approve</UiButton>
+                <UiButton size="sm" variant="ghost" :disabled="participation.busy" @click="onRejectParticipation(item.id)">
+                  Reject
+                </UiButton>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="participationList">
+          <h4 class="participationList__heading">Members</h4>
+          <div v-if="(participation.approvedPage?.content.length ?? 0) === 0" class="drawerMuted">No approved members yet.</div>
+          <div v-else class="participationList__items">
+            <div v-for="item in participation.approvedPage?.content ?? []" :key="`approved_${item.id}`" class="participationList__item">
+              <div>
+                <div class="participationList__user">{{ item.userNickname }}</div>
+                <div class="participationList__meta">Joined</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="!isDrawerHost && !canRequestJoin && !myParticipation" class="drawerMuted">
+          Participation is not available for this meetup status.
         </div>
       </section>
 
@@ -141,12 +181,35 @@
             </div>
           </div>
 
-          <form class="comms__form" @submit.prevent="submitComm">
+          <form v-if="isDrawerHost" class="comms__form" @submit.prevent="submitComm">
             <UiInput v-model="comms.draft" label="New message" placeholder="Short and clear" />
             <UiButton type="submit" :disabled="comms.sending || comms.draft.trim().length === 0">
               {{ comms.sending ? 'Sending...' : 'Send' }}
             </UiButton>
           </form>
+          <p v-else class="drawerMuted">Only the meetup host can post announcements.</p>
+        </div>
+      </section>
+
+      <section class="drawerBlock">
+        <h3 class="drawerH">Chat</h3>
+        <div class="comms">
+          <div v-if="chat.loading" class="drawerMuted">Loading...</div>
+          <div v-else-if="chat.page && chat.page.content.length === 0" class="drawerMuted">No chats yet.</div>
+          <div v-else class="comms__list">
+            <div v-for="m in chat.page?.content ?? []" :key="m.id" class="comms__item">
+              <div class="comms__content">{{ m.content }}</div>
+              <div class="comms__meta">{{ m.senderNickname }} · {{ formatWhen(m.createdAt) }}</div>
+            </div>
+          </div>
+
+          <form v-if="canPostChat" class="comms__form" @submit.prevent="submitChat">
+            <UiInput v-model="chat.draft" label="Chat message" placeholder="Say hi" />
+            <UiButton type="submit" :disabled="chat.sending || chat.draft.trim().length === 0">
+              {{ chat.sending ? 'Sending...' : 'Send' }}
+            </UiButton>
+          </form>
+          <p v-else class="drawerMuted">Host and approved participants only.</p>
         </div>
       </section>
     </template>
@@ -154,13 +217,23 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 
 import puppyUrl from '@/assets/puppy.png'
 import { toApiClientError } from '@/api/http'
 import { cancelMeetup, createMeetup, endMeetup, getMeetup, listMeetups, updateMeetup, type Meetup } from '@/api/meetups'
 import { createCommunication, listCommunications, type Communication } from '@/api/communications'
+import { createChatMessage, listChatMessages, type ChatMessage } from '@/api/chats'
+import {
+  approveParticipation,
+  getMyParticipation,
+  listApprovedParticipations,
+  listRequestedParticipations,
+  rejectParticipation,
+  requestParticipation,
+  type Participation,
+} from '@/api/participations'
 import type { Page } from '@/api/types'
 import UiBadge from '@/components/ui/UiBadge.vue'
 import UiButton from '@/components/ui/UiButton.vue'
@@ -221,6 +294,67 @@ const comms = reactive<{
   page: null,
   draft: '',
   sending: false,
+})
+
+const chat = reactive<{
+  loading: boolean
+  page: Page<ChatMessage> | null
+  draft: string
+  sending: boolean
+}>({
+  loading: false,
+  page: null,
+  draft: '',
+  sending: false,
+})
+
+const participation = reactive<{
+  loading: boolean
+  busy: boolean
+  page: Page<Participation> | null
+  approvedPage: Page<Participation> | null
+  mine: Participation | null
+}>({
+  loading: false,
+  busy: false,
+  page: null,
+  approvedPage: null,
+  mine: null,
+})
+
+const myParticipation = computed(() => participation.mine)
+
+const isDrawerHost = computed(() => {
+  if (!drawer.meetup || auth.userId === null) {
+    return false
+  }
+  return drawer.meetup.hostUserId === auth.userId
+})
+
+const canRequestJoin = computed(() => {
+  if (!drawer.meetup || auth.userId === null) {
+    return false
+  }
+  if (drawer.meetup.hostUserId === auth.userId) {
+    return false
+  }
+  if (drawer.meetup.status !== 'RECRUITING') {
+    return false
+  }
+  if (!participation.mine) {
+    return true
+  }
+  return participation.mine.status === 'REJECTED'
+})
+
+const canPostChat = computed(() => {
+  if (!drawer.meetup || auth.userId === null) {
+    return false
+  }
+  if (drawer.meetup.hostUserId === auth.userId) {
+    return true
+  }
+  return participation.mine?.status === 'APPROVED'
 })
 
 async function refresh() {
@@ -312,14 +446,33 @@ async function submitModal() {
   if (!requireLogin()) {
     return
   }
+
+  const title = form.title.trim()
+  const location = form.location.trim()
+  const maxParticipants = Number(form.maxParticipants)
+  const scheduledAt = toIsoFromLocalInput(form.scheduledAt)
+
+  if (!title || !location) {
+    toasts.push({ tone: 'error', title: 'COMMON_VALIDATION_FAILED', message: 'Title and location are required.' })
+    return
+  }
+  if (!Number.isFinite(maxParticipants) || maxParticipants < 1) {
+    toasts.push({ tone: 'error', title: 'COMMON_VALIDATION_FAILED', message: 'Max participants must be 1 or more.' })
+    return
+  }
+  if (!form.scheduledAt || Number.isNaN(new Date(scheduledAt).getTime())) {
+    toasts.push({ tone: 'error', title: 'COMMON_VALIDATION_FAILED', message: 'Please select a valid schedule date/time.' })
+    return
+  }
+
   modal.submitting = true
   try {
     const payload = {
-      title: form.title.trim(),
+      title,
       description: form.description.trim() || undefined,
-      location: form.location.trim(),
-      maxParticipants: Number(form.maxParticipants),
-      scheduledAt: toIsoFromLocalInput(form.scheduledAt),
+      location,
+      maxParticipants,
+      scheduledAt,
     }
 
     if (modal.mode === 'create') {
@@ -334,7 +487,8 @@ async function submitModal() {
     await refresh()
   } catch (e) {
     const err = toApiClientError(e)
-    toasts.push({ tone: 'error', title: err.code, message: err.message })
+    const detail = err.details.length > 0 ? ` (${err.details[0]})` : ''
+    toasts.push({ tone: 'error', title: err.code, message: `${err.message}${detail}` })
   } finally {
     modal.submitting = false
   }
@@ -345,8 +499,19 @@ async function openDetails(m: Meetup) {
   drawer.meetup = m
   comms.page = null
   comms.draft = ''
+  chat.page = null
+  chat.draft = ''
+  participation.page = null
+  participation.approvedPage = null
+  participation.mine = null
   await loadMeetup(m.id)
-  await loadComms(m.id)
+  await Promise.all([
+    loadComms(m.id),
+    loadRequestedParticipations(m.id),
+    loadApprovedParticipations(m.id),
+    loadMyParticipation(m.id),
+    loadChats(m.id),
+  ])
 }
 
 async function loadMeetup(meetupId: number) {
@@ -370,13 +535,74 @@ async function loadComms(meetupId: number) {
   }
 }
 
+async function loadChats(meetupId: number) {
+  chat.loading = true
+  try {
+    chat.page = await listChatMessages(meetupId, { page: 0, size: 50 })
+  } catch (e) {
+    const err = toApiClientError(e)
+    chat.page = null
+    if (err.code !== 'CHAT_LIST_FORBIDDEN') {
+      toasts.push({ tone: 'error', title: err.code, message: err.message })
+    }
+  } finally {
+    chat.loading = false
+  }
+}
+
+async function loadRequestedParticipations(meetupId: number) {
+  if (!isDrawerHost.value) {
+    participation.page = null
+    return
+  }
+  participation.loading = true
+  try {
+    participation.page = await listRequestedParticipations(meetupId, { page: 0, size: 50 })
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  } finally {
+    participation.loading = false
+  }
+}
+
+async function loadApprovedParticipations(meetupId: number) {
+  try {
+    participation.approvedPage = await listApprovedParticipations(meetupId, { page: 0, size: 50 })
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  }
+}
+
+async function loadMyParticipation(meetupId: number) {
+  if (auth.userId === null) {
+    participation.mine = null
+    return
+  }
+  try {
+    participation.mine = await getMyParticipation(meetupId)
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  }
+}
+
 function closeDrawer() {
   drawer.open = false
   drawer.meetup = null
+  participation.mine = null
+  participation.approvedPage = null
+  chat.page = null
+  chat.draft = ''
 }
 
 async function onCancel(meetupId: number) {
   if (!requireLogin()) {
+    return
+  }
+  if (!isDrawerHost.value) {
+    toasts.push({ tone: 'error', title: 'MEETUP_CANCEL_FORBIDDEN', message: 'Only host can cancel meetup.' })
     return
   }
   drawer.busy = true
@@ -395,6 +621,10 @@ async function onCancel(meetupId: number) {
 
 async function onEnd(meetupId: number) {
   if (!requireLogin()) {
+    return
+  }
+  if (!isDrawerHost.value) {
+    toasts.push({ tone: 'error', title: 'MEETUP_END_FORBIDDEN', message: 'Only host can end meetup.' })
     return
   }
   drawer.busy = true
@@ -416,6 +646,10 @@ async function submitComm() {
   if (!requireLogin()) {
     return
   }
+  if (!isDrawerHost.value) {
+    toasts.push({ tone: 'error', title: 'COMMUNICATION_CREATE_FORBIDDEN', message: 'Only host can post announcements.' })
+    return
+  }
   comms.sending = true
   try {
     await createCommunication(drawer.meetup.id, { content: comms.draft.trim() })
@@ -427,6 +661,80 @@ async function submitComm() {
     toasts.push({ tone: 'error', title: err.code, message: err.message })
   } finally {
     comms.sending = false
+  }
+}
+
+async function submitChat() {
+  if (!drawer.meetup) return
+  if (!requireLogin()) {
+    return
+  }
+  if (!canPostChat.value) {
+    toasts.push({ tone: 'error', title: 'CHAT_CREATE_FORBIDDEN', message: 'Only host and approved participants can chat.' })
+    return
+  }
+  chat.sending = true
+  try {
+    await createChatMessage(drawer.meetup.id, { content: chat.draft.trim() })
+    chat.draft = ''
+    await loadChats(drawer.meetup.id)
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  } finally {
+    chat.sending = false
+  }
+}
+
+async function onRequestParticipation(meetupId: number) {
+  if (!requireLogin()) {
+    return
+  }
+  participation.busy = true
+  try {
+    participation.mine = await requestParticipation(meetupId)
+    toasts.push({ tone: 'success', title: 'Requested', message: 'Participation request sent.' })
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  } finally {
+    participation.busy = false
+  }
+}
+
+async function onApproveParticipation(participationId: number) {
+  if (!drawer.meetup) {
+    return
+  }
+  participation.busy = true
+  try {
+    await approveParticipation(drawer.meetup.id, participationId)
+    toasts.push({ tone: 'success', title: 'Approved', message: 'Participation approved.' })
+    await loadRequestedParticipations(drawer.meetup.id)
+    await loadApprovedParticipations(drawer.meetup.id)
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  } finally {
+    participation.busy = false
+  }
+}
+
+async function onRejectParticipation(participationId: number) {
+  if (!drawer.meetup) {
+    return
+  }
+  participation.busy = true
+  try {
+    await rejectParticipation(drawer.meetup.id, participationId)
+    toasts.push({ tone: 'success', title: 'Rejected', message: 'Participation rejected.' })
+    await loadRequestedParticipations(drawer.meetup.id)
+    await loadApprovedParticipations(drawer.meetup.id)
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  } finally {
+    participation.busy = false
   }
 }
 
@@ -668,5 +976,42 @@ void refresh()
   display: grid;
   gap: var(--s-3);
   margin-top: var(--s-4);
+}
+
+.participationList {
+  margin-top: var(--s-3);
+}
+
+.participationList__items {
+  display: grid;
+  gap: 10px;
+}
+
+.participationList__heading {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--c-ink-2);
+  font-weight: 700;
+}
+
+.participationList__item {
+  display: flex;
+  gap: var(--s-3);
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(27, 31, 35, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.participationList__user {
+  font-weight: 700;
+}
+
+.participationList__meta {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--c-ink-2);
 }
 </style>

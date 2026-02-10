@@ -22,6 +22,9 @@ public class User {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private UserStatus status;
@@ -32,8 +35,9 @@ public class User {
     protected User() {
     }
 
-    public User(String email, UserStatus status, OffsetDateTime createdAt) {
+    public User(String email, String passwordHash, UserStatus status, OffsetDateTime createdAt) {
         this.email = email;
+        this.passwordHash = passwordHash;
         this.status = status;
         this.createdAt = createdAt;
     }
@@ -51,6 +55,10 @@ public class User {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
     public UserStatus getStatus() {

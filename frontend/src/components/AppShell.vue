@@ -14,7 +14,7 @@
         <div class="auth">
           <template v-if="auth.isLoggedIn">
             <span class="auth__email">{{ auth.email }}</span>
-            <UiButton size="sm" variant="ghost" @click="auth.logout">Logout</UiButton>
+            <UiButton size="sm" variant="ghost" @click="onLogout">Logout</UiButton>
           </template>
           <template v-else>
             <RouterLink class="nav__link" to="/">Login</RouterLink>
@@ -34,13 +34,29 @@
 </template>
 
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 
 import UiButton from '@/components/ui/UiButton.vue'
 import UiToastHost from '@/components/ui/UiToastHost.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useToastStore } from '@/stores/toasts'
+import { toApiClientError } from '@/api/http'
 
 const auth = useAuthStore()
+const toasts = useToastStore()
+const router = useRouter()
+
+async function onLogout() {
+  try {
+    await auth.logout()
+    toasts.push({ tone: 'success', title: 'Logged out', message: 'Session ended.' })
+  } catch (e) {
+    const err = toApiClientError(e)
+    toasts.push({ tone: 'error', title: err.code, message: err.message })
+  } finally {
+    await router.push('/')
+  }
+}
 </script>
 
 <style scoped>
