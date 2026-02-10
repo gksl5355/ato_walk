@@ -2,6 +2,7 @@ package com.example.walkservice.communication.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -12,6 +13,7 @@ import com.example.walkservice.communication.dto.CreateCommunicationRequest;
 import com.example.walkservice.communication.entity.Communication;
 import com.example.walkservice.communication.repository.CommunicationRepository;
 import com.example.walkservice.communication.repository.MeetupLookupRepository;
+import com.example.walkservice.communication.repository.UserStatusLookupRepository;
 import java.lang.reflect.Field;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -26,7 +28,12 @@ class CommunicationServiceTest {
     void createCommunication_requiresHost() {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        CommunicationService service = new CommunicationService(communicationRepository, meetupLookupRepository);
+        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        CommunicationService service = new CommunicationService(
+                communicationRepository,
+                meetupLookupRepository,
+                userStatusLookupRepository
+        );
 
         when(meetupLookupRepository.findHostUserId(1L)).thenReturn(10L);
 
@@ -39,7 +46,12 @@ class CommunicationServiceTest {
     void createCommunication_requiresMeetup() {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        CommunicationService service = new CommunicationService(communicationRepository, meetupLookupRepository);
+        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        CommunicationService service = new CommunicationService(
+                communicationRepository,
+                meetupLookupRepository,
+                userStatusLookupRepository
+        );
 
         when(meetupLookupRepository.findHostUserId(1L)).thenReturn(null);
 
@@ -49,10 +61,37 @@ class CommunicationServiceTest {
     }
 
     @Test
+    void createCommunication_blocksBlockedUser() {
+        CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
+        MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
+        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        CommunicationService service = new CommunicationService(
+                communicationRepository,
+                meetupLookupRepository,
+                userStatusLookupRepository
+        );
+
+        when(userStatusLookupRepository.findStatusByUserId(10L)).thenReturn("BLOCKED");
+
+        ApiException ex = catchThrowableOfType(
+                () -> service.createCommunication(10L, 1L, new CreateCommunicationRequest("hi")),
+                ApiException.class
+        );
+
+        assertThat(ex.getCode()).isEqualTo("COMMUNICATION_CREATE_FORBIDDEN");
+        assertThat(ex).hasMessage("Blocked user cannot perform write actions");
+    }
+
+    @Test
     void createCommunication_returnsSavedId() throws Exception {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        CommunicationService service = new CommunicationService(communicationRepository, meetupLookupRepository);
+        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        CommunicationService service = new CommunicationService(
+                communicationRepository,
+                meetupLookupRepository,
+                userStatusLookupRepository
+        );
 
         when(meetupLookupRepository.findHostUserId(1L)).thenReturn(10L);
 
@@ -68,7 +107,12 @@ class CommunicationServiceTest {
     void listCommunications_requiresMeetup() {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        CommunicationService service = new CommunicationService(communicationRepository, meetupLookupRepository);
+        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        CommunicationService service = new CommunicationService(
+                communicationRepository,
+                meetupLookupRepository,
+                userStatusLookupRepository
+        );
 
         when(meetupLookupRepository.existsById(1L)).thenReturn(false);
 
@@ -81,7 +125,12 @@ class CommunicationServiceTest {
     void listCommunications_mapsResponse() throws Exception {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        CommunicationService service = new CommunicationService(communicationRepository, meetupLookupRepository);
+        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        CommunicationService service = new CommunicationService(
+                communicationRepository,
+                meetupLookupRepository,
+                userStatusLookupRepository
+        );
 
         when(meetupLookupRepository.existsById(1L)).thenReturn(true);
 
