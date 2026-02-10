@@ -1,0 +1,121 @@
+package com.example.walkservice.participation.service;
+
+import com.example.walkservice.common.exception.ApiException;
+import com.example.walkservice.participation.dto.ParticipationResponse;
+import com.example.walkservice.participation.entity.Participation;
+import com.example.walkservice.participation.entity.ParticipationStatus;
+import com.example.walkservice.participation.repository.MeetupLookupRepository;
+import com.example.walkservice.participation.repository.ParticipationRepository;
+import com.example.walkservice.participation.repository.UserStatusLookupRepository;
+import java.time.OffsetDateTime;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional
+public class ParticipationService {
+
+    private static final String USER_STATUS_BLOCKED = "BLOCKED";
+
+    private final ParticipationRepository participationRepository;
+    private final MeetupLookupRepository meetupLookupRepository;
+    private final UserStatusLookupRepository userStatusLookupRepository;
+
+    public ParticipationService(
+            ParticipationRepository participationRepository,
+            MeetupLookupRepository meetupLookupRepository,
+            UserStatusLookupRepository userStatusLookupRepository
+    ) {
+        this.participationRepository = participationRepository;
+        this.meetupLookupRepository = meetupLookupRepository;
+        this.userStatusLookupRepository = userStatusLookupRepository;
+    }
+
+    public ParticipationResponse requestParticipation(Long actorUserId, Long meetupId) {
+        ensureActorNotBlocked(actorUserId, "PARTICIPATION_REQUEST_FORBIDDEN");
+
+        if (!meetupLookupRepository.existsById(meetupId)) {
+            throw new ApiException("MEETUP_FIND_NOT_FOUND", "Meetup not found");
+        }
+
+        Participation participation = new Participation(
+                meetupId,
+                actorUserId,
+                ParticipationStatus.REQUESTED,
+                OffsetDateTime.now()
+        );
+
+        Participation saved = participationRepository.save(participation);
+        return toResponse(saved);
+    }
+
+    public ParticipationResponse approveParticipation(Long actorUserId, Long meetupId, Long participationId) {
+        ensureActorNotBlocked(actorUserId, "PARTICIPATION_APPROVE_FORBIDDEN");
+
+        Long hostUserId = meetupLookupRepository.findHostUserId(meetupId);
+        if (hostUserId == null) {
+            throw new ApiException("MEETUP_FIND_NOT_FOUND", "Meetup not found");
+        }
+        if (!hostUserId.equals(actorUserId)) {
+            throw new ApiException("PARTICIPATION_APPROVE_FORBIDDEN", "Only host can approve participation");
+        }
+
+        Participation participation = participationRepository.findByIdAndMeetupId(participationId, meetupId)
+                .orElseThrow(() -> new ApiException("PARTICIPATION_FIND_NOT_FOUND", "Participation not found"));
+
+        participation.approve();
+        return toResponse(participation);
+    }
+
+    public ParticipationResponse rejectParticipation(Long actorUserId, Long meetupId, Long participationId) {
+        ensureActorNotBlocked(actorUserId, "PARTICIPATION_REJECT_FORBIDDEN");
+
+        Long hostUserId = meetupLookupRepository.findHostUserId(meetupId);
+        if (hostUserId == null) {
+            throw new ApiException("MEETUP_FIND_NOT_FOUND", "Meetup not found");
+        }
+        if (!hostUserId.equals(actorUserId)) {
+            throw new ApiException("PARTICIPATION_REJECT_FORBIDDEN", "Only host can reject participation");
+        }
+
+        Participation participation = participationRepository.findByIdAndMeetupId(participationId, meetupId)
+                .orElseThrow(() -> new ApiException("PARTICIPATION_FIND_NOT_FOUND", "Participation not found"));
+
+        participation.reject();
+        return toResponse(participation);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ParticipationResponse> listRequestedParticipations(Long actorUserId, Long meetupId, Pageable pageable) {
+        Long hostUserId = meetupLookupRepository.findHostUserId(meetupId);
+        if (hostUserId == null) {
+            throw new ApiException("MEETUP_FIND_NOT_FOUND", "Meetup not found");
+        }
+        if (!hostUserId.equals(actorUserId)) {
+            throw new ApiException("PARTICIPATION_LIST_FORBIDDEN", "Only host can view participation requests");
+        }
+
+        return participationRepository
+                .findByMeetupIdAndStatusOrderByCreatedAtDesc(meetupId, ParticipationStatus.REQUESTED, pageable)
+                .map(this::toResponse);
+    }
+
+    private void ensureActorNotBlocked(Long actorUserId, String forbiddenCode) {
+        String status = userStatusLookupRepository.findStatusByUserId(actorUserId);
+        if (USER_STATUS_BLOCKED.equals(status)) {
+            throw new ApiException(forbiddenCode, "Blocked user cannot perform write actions");
+        }
+    }
+
+    private ParticipationResponse toResponse(Participation participation) {
+        return new ParticipationResponse(
+                participation.getId(),
+                participation.getMeetupId(),
+                participation.getUserId(),
+                participation.getStatus(),
+                participation.getCreatedAt()
+        );
+    }
+}
