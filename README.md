@@ -1,5 +1,7 @@
 # ato_walk
 
+<img width="1411" height="1069" alt="image" src="https://github.com/user-attachments/assets/32a5d8fc-0574-46d6-b31e-8ce527face18" />
+
 "No magic. Just walks."  (U^_^U)
 
 반려견과 함께하는 산책/모임을 만들고, 참여하고, 안전하게 운영하기 위한 단일 웹 서비스(Monolith) 프로젝트입니다.
