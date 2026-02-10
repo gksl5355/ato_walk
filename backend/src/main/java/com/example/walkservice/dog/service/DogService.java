@@ -1,12 +1,12 @@
 package com.example.walkservice.dog.service;
 
 import com.example.walkservice.common.exception.ApiException;
+import com.example.walkservice.common.security.BlockedWriteGuard;
 import com.example.walkservice.dog.dto.CreateDogRequest;
 import com.example.walkservice.dog.dto.DogResponse;
 import com.example.walkservice.dog.dto.UpdateDogRequest;
 import com.example.walkservice.dog.entity.Dog;
 import com.example.walkservice.dog.repository.DogRepository;
-import com.example.walkservice.dog.repository.UserStatusLookupRepository;
 import java.time.OffsetDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,18 +17,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class DogService {
 
-    private static final String USER_STATUS_BLOCKED = "BLOCKED";
-
     private final DogRepository dogRepository;
-    private final UserStatusLookupRepository userStatusLookupRepository;
+    private final BlockedWriteGuard blockedWriteGuard;
 
-    public DogService(DogRepository dogRepository, UserStatusLookupRepository userStatusLookupRepository) {
+    public DogService(DogRepository dogRepository, BlockedWriteGuard blockedWriteGuard) {
         this.dogRepository = dogRepository;
-        this.userStatusLookupRepository = userStatusLookupRepository;
+        this.blockedWriteGuard = blockedWriteGuard;
     }
 
     public DogResponse createDog(Long actorUserId, CreateDogRequest request) {
-        ensureActorNotBlocked(actorUserId, "DOG_CREATE_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "DOG_CREATE_FORBIDDEN");
 
         Dog dog = new Dog(
                 actorUserId,
@@ -47,7 +45,7 @@ public class DogService {
     }
 
     public DogResponse updateDog(Long actorUserId, Long dogId, UpdateDogRequest request) {
-        ensureActorNotBlocked(actorUserId, "DOG_UPDATE_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "DOG_UPDATE_FORBIDDEN");
 
         Dog dog = dogRepository.findById(dogId)
                 .orElseThrow(() -> new ApiException("DOG_FIND_NOT_FOUND", "Dog not found"));
@@ -87,7 +85,7 @@ public class DogService {
     }
 
     public void deleteDog(Long actorUserId, Long dogId) {
-        ensureActorNotBlocked(actorUserId, "DOG_DELETE_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "DOG_DELETE_FORBIDDEN");
 
         Dog dog = dogRepository.findById(dogId)
                 .orElseThrow(() -> new ApiException("DOG_FIND_NOT_FOUND", "Dog not found"));
@@ -97,13 +95,6 @@ public class DogService {
         }
 
         dogRepository.delete(dog);
-    }
-
-    private void ensureActorNotBlocked(Long actorUserId, String forbiddenCode) {
-        String status = userStatusLookupRepository.findStatusByUserId(actorUserId);
-        if (USER_STATUS_BLOCKED.equals(status)) {
-            throw new ApiException(forbiddenCode, "Blocked user cannot perform write actions");
-        }
     }
 
     private DogResponse toResponse(Dog dog) {

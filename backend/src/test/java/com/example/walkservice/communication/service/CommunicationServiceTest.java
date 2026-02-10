@@ -4,16 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.example.walkservice.common.exception.ApiException;
+import com.example.walkservice.common.security.BlockedWriteGuard;
 import com.example.walkservice.communication.dto.CommunicationResponse;
 import com.example.walkservice.communication.dto.CreateCommunicationRequest;
 import com.example.walkservice.communication.entity.Communication;
 import com.example.walkservice.communication.repository.CommunicationRepository;
 import com.example.walkservice.communication.repository.MeetupLookupRepository;
-import com.example.walkservice.communication.repository.UserStatusLookupRepository;
 import java.lang.reflect.Field;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -28,11 +29,11 @@ class CommunicationServiceTest {
     void createCommunication_requiresHost() {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        BlockedWriteGuard blockedWriteGuard = mock(BlockedWriteGuard.class);
         CommunicationService service = new CommunicationService(
                 communicationRepository,
                 meetupLookupRepository,
-                userStatusLookupRepository
+                blockedWriteGuard
         );
 
         when(meetupLookupRepository.findHostUserId(1L)).thenReturn(10L);
@@ -46,11 +47,11 @@ class CommunicationServiceTest {
     void createCommunication_requiresMeetup() {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        BlockedWriteGuard blockedWriteGuard = mock(BlockedWriteGuard.class);
         CommunicationService service = new CommunicationService(
                 communicationRepository,
                 meetupLookupRepository,
-                userStatusLookupRepository
+                blockedWriteGuard
         );
 
         when(meetupLookupRepository.findHostUserId(1L)).thenReturn(null);
@@ -64,14 +65,16 @@ class CommunicationServiceTest {
     void createCommunication_blocksBlockedUser() {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        BlockedWriteGuard blockedWriteGuard = mock(BlockedWriteGuard.class);
         CommunicationService service = new CommunicationService(
                 communicationRepository,
                 meetupLookupRepository,
-                userStatusLookupRepository
+                blockedWriteGuard
         );
 
-        when(userStatusLookupRepository.findStatusByUserId(10L)).thenReturn("BLOCKED");
+        doThrow(new ApiException("COMMUNICATION_CREATE_FORBIDDEN", "Blocked user cannot perform write actions"))
+                .when(blockedWriteGuard)
+                .ensureNotBlocked(10L, "COMMUNICATION_CREATE_FORBIDDEN");
 
         ApiException ex = catchThrowableOfType(
                 () -> service.createCommunication(10L, 1L, new CreateCommunicationRequest("hi")),
@@ -86,11 +89,11 @@ class CommunicationServiceTest {
     void createCommunication_returnsSavedId() throws Exception {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        BlockedWriteGuard blockedWriteGuard = mock(BlockedWriteGuard.class);
         CommunicationService service = new CommunicationService(
                 communicationRepository,
                 meetupLookupRepository,
-                userStatusLookupRepository
+                blockedWriteGuard
         );
 
         when(meetupLookupRepository.findHostUserId(1L)).thenReturn(10L);
@@ -107,11 +110,11 @@ class CommunicationServiceTest {
     void listCommunications_requiresMeetup() {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        BlockedWriteGuard blockedWriteGuard = mock(BlockedWriteGuard.class);
         CommunicationService service = new CommunicationService(
                 communicationRepository,
                 meetupLookupRepository,
-                userStatusLookupRepository
+                blockedWriteGuard
         );
 
         when(meetupLookupRepository.existsById(1L)).thenReturn(false);
@@ -125,11 +128,11 @@ class CommunicationServiceTest {
     void listCommunications_mapsResponse() throws Exception {
         CommunicationRepository communicationRepository = mock(CommunicationRepository.class);
         MeetupLookupRepository meetupLookupRepository = mock(MeetupLookupRepository.class);
-        UserStatusLookupRepository userStatusLookupRepository = mock(UserStatusLookupRepository.class);
+        BlockedWriteGuard blockedWriteGuard = mock(BlockedWriteGuard.class);
         CommunicationService service = new CommunicationService(
                 communicationRepository,
                 meetupLookupRepository,
-                userStatusLookupRepository
+                blockedWriteGuard
         );
 
         when(meetupLookupRepository.existsById(1L)).thenReturn(true);

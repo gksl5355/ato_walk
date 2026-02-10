@@ -1,4 +1,4 @@
-package com.example.walkservice.participation.repository;
+package com.example.walkservice.common.security;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;

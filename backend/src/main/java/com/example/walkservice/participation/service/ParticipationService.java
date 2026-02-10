@@ -1,12 +1,12 @@
 package com.example.walkservice.participation.service;
 
 import com.example.walkservice.common.exception.ApiException;
+import com.example.walkservice.common.security.BlockedWriteGuard;
 import com.example.walkservice.participation.dto.ParticipationResponse;
 import com.example.walkservice.participation.entity.Participation;
 import com.example.walkservice.participation.entity.ParticipationStatus;
 import com.example.walkservice.participation.repository.MeetupLookupRepository;
 import com.example.walkservice.participation.repository.ParticipationRepository;
-import com.example.walkservice.participation.repository.UserStatusLookupRepository;
 import java.time.OffsetDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,24 +17,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ParticipationService {
 
-    private static final String USER_STATUS_BLOCKED = "BLOCKED";
-
     private final ParticipationRepository participationRepository;
     private final MeetupLookupRepository meetupLookupRepository;
-    private final UserStatusLookupRepository userStatusLookupRepository;
+    private final BlockedWriteGuard blockedWriteGuard;
 
     public ParticipationService(
             ParticipationRepository participationRepository,
             MeetupLookupRepository meetupLookupRepository,
-            UserStatusLookupRepository userStatusLookupRepository
+            BlockedWriteGuard blockedWriteGuard
     ) {
         this.participationRepository = participationRepository;
         this.meetupLookupRepository = meetupLookupRepository;
-        this.userStatusLookupRepository = userStatusLookupRepository;
+        this.blockedWriteGuard = blockedWriteGuard;
     }
 
     public ParticipationResponse requestParticipation(Long actorUserId, Long meetupId) {
-        ensureActorNotBlocked(actorUserId, "PARTICIPATION_REQUEST_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "PARTICIPATION_REQUEST_FORBIDDEN");
 
         if (!meetupLookupRepository.existsById(meetupId)) {
             throw new ApiException("MEETUP_FIND_NOT_FOUND", "Meetup not found");
@@ -52,7 +50,7 @@ public class ParticipationService {
     }
 
     public ParticipationResponse approveParticipation(Long actorUserId, Long meetupId, Long participationId) {
-        ensureActorNotBlocked(actorUserId, "PARTICIPATION_APPROVE_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "PARTICIPATION_APPROVE_FORBIDDEN");
 
         Long hostUserId = meetupLookupRepository.findHostUserId(meetupId);
         if (hostUserId == null) {
@@ -70,7 +68,7 @@ public class ParticipationService {
     }
 
     public ParticipationResponse rejectParticipation(Long actorUserId, Long meetupId, Long participationId) {
-        ensureActorNotBlocked(actorUserId, "PARTICIPATION_REJECT_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "PARTICIPATION_REJECT_FORBIDDEN");
 
         Long hostUserId = meetupLookupRepository.findHostUserId(meetupId);
         if (hostUserId == null) {
@@ -100,13 +98,6 @@ public class ParticipationService {
         return participationRepository
                 .findByMeetupIdAndStatusOrderByCreatedAtDesc(meetupId, ParticipationStatus.REQUESTED, pageable)
                 .map(this::toResponse);
-    }
-
-    private void ensureActorNotBlocked(Long actorUserId, String forbiddenCode) {
-        String status = userStatusLookupRepository.findStatusByUserId(actorUserId);
-        if (USER_STATUS_BLOCKED.equals(status)) {
-            throw new ApiException(forbiddenCode, "Blocked user cannot perform write actions");
-        }
     }
 
     private ParticipationResponse toResponse(Participation participation) {

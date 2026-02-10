@@ -1,5 +1,7 @@
 package com.example.walkservice.safety.service;
 
+import com.example.walkservice.common.exception.ApiException;
+import com.example.walkservice.common.security.BlockedWriteGuard;
 import com.example.walkservice.safety.dto.BlockResponse;
 import com.example.walkservice.safety.dto.CreateBlockRequest;
 import com.example.walkservice.safety.dto.CreateReportRequest;
@@ -18,13 +20,21 @@ public class SafetyService {
 
     private final ReportRepository reportRepository;
     private final BlockRepository blockRepository;
+    private final BlockedWriteGuard blockedWriteGuard;
 
-    public SafetyService(ReportRepository reportRepository, BlockRepository blockRepository) {
+    public SafetyService(
+            ReportRepository reportRepository,
+            BlockRepository blockRepository,
+            BlockedWriteGuard blockedWriteGuard
+    ) {
         this.reportRepository = reportRepository;
         this.blockRepository = blockRepository;
+        this.blockedWriteGuard = blockedWriteGuard;
     }
 
     public ReportResponse createReport(Long actorUserId, CreateReportRequest request) {
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "SAFETY_REPORT_CREATE_FORBIDDEN");
+
         Report report = new Report(
                 actorUserId,
                 request.getReportedUserId(),
@@ -38,6 +48,8 @@ public class SafetyService {
     }
 
     public BlockResponse createBlock(Long actorUserId, CreateBlockRequest request) {
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "SAFETY_BLOCK_CREATE_FORBIDDEN");
+
         Block block = new Block(actorUserId, request.getBlockedUserId(), OffsetDateTime.now());
         Block saved = blockRepository.save(block);
         return toResponse(saved);

@@ -5,7 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import org.springframework.stereotype.Repository;
 
-@Repository
+@Repository("communicationMeetupLookupRepository")
 public class MeetupLookupRepository {
 
     @PersistenceContext

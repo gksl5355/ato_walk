@@ -36,6 +36,9 @@ public class GlobalExceptionHandler {
     }
 
     private HttpStatus httpStatusFor(String code) {
+        if ("COMMON_AUTH_REQUIRED".equals(code)) {
+            return HttpStatus.UNAUTHORIZED;
+        }
         if (code != null && code.endsWith("_FORBIDDEN")) {
             return HttpStatus.FORBIDDEN;
         }

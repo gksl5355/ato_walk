@@ -1,12 +1,12 @@
 package com.example.walkservice.communication.service;
 
 import com.example.walkservice.common.exception.ApiException;
+import com.example.walkservice.common.security.BlockedWriteGuard;
 import com.example.walkservice.communication.dto.CommunicationResponse;
 import com.example.walkservice.communication.dto.CreateCommunicationRequest;
 import com.example.walkservice.communication.entity.Communication;
 import com.example.walkservice.communication.repository.CommunicationRepository;
 import com.example.walkservice.communication.repository.MeetupLookupRepository;
-import com.example.walkservice.communication.repository.UserStatusLookupRepository;
 import java.time.OffsetDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,24 +17,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class CommunicationService {
 
-    private static final String USER_STATUS_BLOCKED = "BLOCKED";
-
     private final CommunicationRepository communicationRepository;
     private final MeetupLookupRepository meetupLookupRepository;
-    private final UserStatusLookupRepository userStatusLookupRepository;
+    private final BlockedWriteGuard blockedWriteGuard;
 
     public CommunicationService(
             CommunicationRepository communicationRepository,
             MeetupLookupRepository meetupLookupRepository,
-            UserStatusLookupRepository userStatusLookupRepository
+            BlockedWriteGuard blockedWriteGuard
     ) {
         this.communicationRepository = communicationRepository;
         this.meetupLookupRepository = meetupLookupRepository;
-        this.userStatusLookupRepository = userStatusLookupRepository;
+        this.blockedWriteGuard = blockedWriteGuard;
     }
 
     public CommunicationResponse createCommunication(Long actorUserId, Long meetupId, CreateCommunicationRequest request) {
-        ensureActorNotBlocked(actorUserId, "COMMUNICATION_CREATE_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "COMMUNICATION_CREATE_FORBIDDEN");
 
         Long hostUserId = meetupLookupRepository.findHostUserId(meetupId);
         if (hostUserId == null) {
@@ -59,13 +57,6 @@ public class CommunicationService {
         return communicationRepository
                 .findByMeetupIdOrderByCreatedAtDesc(meetupId, pageable)
                 .map(this::toResponse);
-    }
-
-    private void ensureActorNotBlocked(Long actorUserId, String forbiddenCode) {
-        String status = userStatusLookupRepository.findStatusByUserId(actorUserId);
-        if (USER_STATUS_BLOCKED.equals(status)) {
-            throw new ApiException(forbiddenCode, "Blocked user cannot perform write actions");
-        }
     }
 
     private CommunicationResponse toResponse(Communication communication) {

@@ -12,6 +12,7 @@ import com.example.walkservice.safety.entity.Block;
 import com.example.walkservice.safety.entity.Report;
 import com.example.walkservice.safety.repository.BlockRepository;
 import com.example.walkservice.safety.repository.ReportRepository;
+import com.example.walkservice.common.security.BlockedWriteGuard;
 import java.lang.reflect.Field;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,9 @@ class SafetyServiceTest {
 
     @Mock
     private BlockRepository blockRepository;
+
+    @Mock
+    private BlockedWriteGuard blockedWriteGuard;
 
     @InjectMocks
     private SafetyService safetyService;

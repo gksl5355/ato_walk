@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 
 import com.example.walkservice.common.exception.ApiException;
+import com.example.walkservice.common.security.BlockedWriteGuard;
 import com.example.walkservice.dog.dto.CreateDogRequest;
 import com.example.walkservice.dog.dto.UpdateDogRequest;
 import com.example.walkservice.dog.entity.Dog;
@@ -13,7 +15,6 @@ import com.example.walkservice.dog.entity.DogReactivityLevel;
 import com.example.walkservice.dog.entity.DogSize;
 import com.example.walkservice.dog.entity.DogSociabilityLevel;
 import com.example.walkservice.dog.repository.DogRepository;
-import com.example.walkservice.dog.repository.UserStatusLookupRepository;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,14 +33,16 @@ class DogServiceTest {
     private DogRepository dogRepository;
 
     @Mock
-    private UserStatusLookupRepository userStatusLookupRepository;
+    private BlockedWriteGuard blockedWriteGuard;
 
     @InjectMocks
     private DogService dogService;
 
     @Test
     void createDog_blockedActor_throwsForbidden() {
-        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+        willThrow(new ApiException("DOG_CREATE_FORBIDDEN", "Blocked user cannot perform write actions"))
+                .given(blockedWriteGuard)
+                .ensureNotBlocked(1L, "DOG_CREATE_FORBIDDEN");
 
         CreateDogRequest request = new CreateDogRequest(
                 "name",
@@ -58,8 +61,6 @@ class DogServiceTest {
 
     @Test
     void updateDog_notOwner_throwsForbidden() {
-        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("ACTIVE");
-
         Dog dog = new Dog(
                 2L,
                 "name",
@@ -110,7 +111,9 @@ class DogServiceTest {
 
     @Test
     void deleteDog_blockedActor_throwsForbidden() {
-        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+        willThrow(new ApiException("DOG_DELETE_FORBIDDEN", "Blocked user cannot perform write actions"))
+                .given(blockedWriteGuard)
+                .ensureNotBlocked(1L, "DOG_DELETE_FORBIDDEN");
 
         ApiException ex = assertThrows(ApiException.class, () -> dogService.deleteDog(1L, 10L));
         assertEquals("DOG_DELETE_FORBIDDEN", ex.getCode());
@@ -119,8 +122,6 @@ class DogServiceTest {
 
     @Test
     void deleteDog_notOwner_throwsForbidden() {
-        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("ACTIVE");
-
         Dog dog = new Dog(
                 2L,
                 "name",

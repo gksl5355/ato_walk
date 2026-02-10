@@ -4,14 +4,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.willThrow;
 
 import com.example.walkservice.common.exception.ApiException;
+import com.example.walkservice.common.security.BlockedWriteGuard;
 import com.example.walkservice.participation.dto.ParticipationResponse;
 import com.example.walkservice.participation.entity.Participation;
 import com.example.walkservice.participation.entity.ParticipationStatus;
 import com.example.walkservice.participation.repository.MeetupLookupRepository;
 import com.example.walkservice.participation.repository.ParticipationRepository;
-import com.example.walkservice.participation.repository.UserStatusLookupRepository;
 import java.lang.reflect.Field;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -35,14 +36,16 @@ class ParticipationServiceTest {
     private MeetupLookupRepository meetupLookupRepository;
 
     @Mock
-    private UserStatusLookupRepository userStatusLookupRepository;
+    private BlockedWriteGuard blockedWriteGuard;
 
     @InjectMocks
     private ParticipationService participationService;
 
     @Test
     void requestParticipation_blockedActor_throwsForbidden() {
-        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+        willThrow(new ApiException("PARTICIPATION_REQUEST_FORBIDDEN", "Blocked user cannot perform write actions"))
+                .given(blockedWriteGuard)
+                .ensureNotBlocked(1L, "PARTICIPATION_REQUEST_FORBIDDEN");
 
         ApiException ex = (ApiException) org.junit.jupiter.api.Assertions.assertThrows(
                 ApiException.class,
@@ -54,7 +57,6 @@ class ParticipationServiceTest {
 
     @Test
     void requestParticipation_meetupMissing_throwsNotFound() {
-        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("ACTIVE");
         given(meetupLookupRepository.existsById(10L)).willReturn(false);
 
         ApiException ex = (ApiException) org.junit.jupiter.api.Assertions.assertThrows(
@@ -67,7 +69,6 @@ class ParticipationServiceTest {
 
     @Test
     void approveParticipation_notHost_throwsForbidden() {
-        given(userStatusLookupRepository.findStatusByUserId(20L)).willReturn("ACTIVE");
         given(meetupLookupRepository.findHostUserId(1L)).willReturn(10L);
 
         ApiException ex = (ApiException) org.junit.jupiter.api.Assertions.assertThrows(
@@ -80,7 +81,6 @@ class ParticipationServiceTest {
 
     @Test
     void approveParticipation_invalidState_throwsBadRequest() {
-        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
         given(meetupLookupRepository.findHostUserId(1L)).willReturn(10L);
 
         Participation participation = new Participation(

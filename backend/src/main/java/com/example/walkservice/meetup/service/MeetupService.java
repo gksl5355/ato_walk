@@ -1,13 +1,13 @@
 package com.example.walkservice.meetup.service;
 
 import com.example.walkservice.common.exception.ApiException;
+import com.example.walkservice.common.security.BlockedWriteGuard;
 import com.example.walkservice.meetup.dto.CreateMeetupRequest;
 import com.example.walkservice.meetup.dto.MeetupResponse;
 import com.example.walkservice.meetup.dto.UpdateMeetupRequest;
 import com.example.walkservice.meetup.entity.Meetup;
 import com.example.walkservice.meetup.entity.MeetupStatus;
 import com.example.walkservice.meetup.repository.MeetupRepository;
-import com.example.walkservice.meetup.repository.UserStatusLookupRepository;
 import java.time.OffsetDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,18 +18,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class MeetupService {
 
-    private static final String USER_STATUS_BLOCKED = "BLOCKED";
-
     private final MeetupRepository meetupRepository;
-    private final UserStatusLookupRepository userStatusLookupRepository;
+    private final BlockedWriteGuard blockedWriteGuard;
 
-    public MeetupService(MeetupRepository meetupRepository, UserStatusLookupRepository userStatusLookupRepository) {
+    public MeetupService(MeetupRepository meetupRepository, BlockedWriteGuard blockedWriteGuard) {
         this.meetupRepository = meetupRepository;
-        this.userStatusLookupRepository = userStatusLookupRepository;
+        this.blockedWriteGuard = blockedWriteGuard;
     }
 
     public MeetupResponse createMeetup(Long actorUserId, CreateMeetupRequest request) {
-        ensureActorNotBlocked(actorUserId, "MEETUP_CREATE_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "MEETUP_CREATE_FORBIDDEN");
 
         Meetup meetup = new Meetup(
                 actorUserId,
@@ -47,7 +45,7 @@ public class MeetupService {
     }
 
     public void cancelMeetup(Long actorUserId, Long meetupId) {
-        ensureActorNotBlocked(actorUserId, "MEETUP_CANCEL_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "MEETUP_CANCEL_FORBIDDEN");
 
         Meetup meetup = meetupRepository.findById(meetupId)
                 .orElseThrow(() -> new ApiException("MEETUP_FIND_NOT_FOUND", "Meetup not found"));
@@ -60,7 +58,7 @@ public class MeetupService {
     }
 
     public void endMeetup(Long actorUserId, Long meetupId) {
-        ensureActorNotBlocked(actorUserId, "MEETUP_END_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "MEETUP_END_FORBIDDEN");
 
         Meetup meetup = meetupRepository.findById(meetupId)
                 .orElseThrow(() -> new ApiException("MEETUP_FIND_NOT_FOUND", "Meetup not found"));
@@ -73,7 +71,7 @@ public class MeetupService {
     }
 
     public MeetupResponse updateMeetup(Long actorUserId, Long meetupId, UpdateMeetupRequest request) {
-        ensureActorNotBlocked(actorUserId, "MEETUP_UPDATE_FORBIDDEN");
+        blockedWriteGuard.ensureNotBlocked(actorUserId, "MEETUP_UPDATE_FORBIDDEN");
 
         Meetup meetup = meetupRepository.findById(meetupId)
                 .orElseThrow(() -> new ApiException("MEETUP_FIND_NOT_FOUND", "Meetup not found"));
@@ -131,10 +129,4 @@ public class MeetupService {
         );
     }
 
-    private void ensureActorNotBlocked(Long actorUserId, String forbiddenCode) {
-        String status = userStatusLookupRepository.findStatusByUserId(actorUserId);
-        if (USER_STATUS_BLOCKED.equals(status)) {
-            throw new ApiException(forbiddenCode, "Blocked user cannot perform write actions");
-        }
-    }
 }

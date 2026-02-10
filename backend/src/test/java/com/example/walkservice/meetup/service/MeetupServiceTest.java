@@ -4,16 +4,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.example.walkservice.common.exception.ApiException;
+import com.example.walkservice.common.security.BlockedWriteGuard;
 import com.example.walkservice.meetup.dto.CreateMeetupRequest;
 import com.example.walkservice.meetup.dto.UpdateMeetupRequest;
 import com.example.walkservice.meetup.entity.Meetup;
 import com.example.walkservice.meetup.entity.MeetupStatus;
 import com.example.walkservice.meetup.repository.MeetupRepository;
-import com.example.walkservice.meetup.repository.UserStatusLookupRepository;
 import java.lang.reflect.Field;
 import java.time.OffsetDateTime;
 import java.util.Optional;
@@ -30,15 +31,13 @@ class MeetupServiceTest {
     private MeetupRepository meetupRepository;
 
     @Mock
-    private UserStatusLookupRepository userStatusLookupRepository;
+    private BlockedWriteGuard blockedWriteGuard;
 
     @InjectMocks
     private MeetupService meetupService;
 
     @Test
     void cancelMeetup_requiresHost() {
-        given(userStatusLookupRepository.findStatusByUserId(20L)).willReturn("ACTIVE");
-
         Meetup meetup = new Meetup(
                 10L,
                 "t",
@@ -58,8 +57,6 @@ class MeetupServiceTest {
 
     @Test
     void endMeetup_changesStatus() {
-        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
-
         Meetup meetup = new Meetup(
                 10L,
                 "t",
@@ -78,8 +75,6 @@ class MeetupServiceTest {
 
     @Test
     void cancelMeetup_requiresRecruitingState() {
-        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
-
         Meetup meetup = new Meetup(
                 10L,
                 "t",
@@ -99,8 +94,6 @@ class MeetupServiceTest {
 
     @Test
     void endMeetup_requiresRecruitingState() {
-        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
-
         Meetup meetup = new Meetup(
                 10L,
                 "t",
@@ -120,8 +113,6 @@ class MeetupServiceTest {
 
     @Test
     void updateMeetup_requiresRecruitingState() {
-        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
-
         Meetup meetup = new Meetup(
                 10L,
                 "t",
@@ -149,8 +140,6 @@ class MeetupServiceTest {
 
     @Test
     void createMeetup_returnsSavedId() throws Exception {
-        given(userStatusLookupRepository.findStatusByUserId(10L)).willReturn("ACTIVE");
-
         Meetup saved = new Meetup(
                 10L,
                 "t",
@@ -178,7 +167,9 @@ class MeetupServiceTest {
 
     @Test
     void createMeetup_blockedActor_throwsForbidden() {
-        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+        willThrow(new ApiException("MEETUP_CREATE_FORBIDDEN", "Blocked user cannot perform write actions"))
+                .given(blockedWriteGuard)
+                .ensureNotBlocked(1L, "MEETUP_CREATE_FORBIDDEN");
 
         CreateMeetupRequest request = new CreateMeetupRequest(
                 "t",
@@ -198,7 +189,9 @@ class MeetupServiceTest {
 
     @Test
     void cancelMeetup_blockedActor_throwsForbidden() {
-        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+        willThrow(new ApiException("MEETUP_CANCEL_FORBIDDEN", "Blocked user cannot perform write actions"))
+                .given(blockedWriteGuard)
+                .ensureNotBlocked(1L, "MEETUP_CANCEL_FORBIDDEN");
 
         ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
                 ApiException.class,
@@ -210,7 +203,9 @@ class MeetupServiceTest {
 
     @Test
     void endMeetup_blockedActor_throwsForbidden() {
-        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+        willThrow(new ApiException("MEETUP_END_FORBIDDEN", "Blocked user cannot perform write actions"))
+                .given(blockedWriteGuard)
+                .ensureNotBlocked(1L, "MEETUP_END_FORBIDDEN");
 
         ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
                 ApiException.class,
@@ -222,7 +217,9 @@ class MeetupServiceTest {
 
     @Test
     void updateMeetup_blockedActor_throwsForbidden() {
-        given(userStatusLookupRepository.findStatusByUserId(1L)).willReturn("BLOCKED");
+        willThrow(new ApiException("MEETUP_UPDATE_FORBIDDEN", "Blocked user cannot perform write actions"))
+                .given(blockedWriteGuard)
+                .ensureNotBlocked(1L, "MEETUP_UPDATE_FORBIDDEN");
 
         UpdateMeetupRequest request = new UpdateMeetupRequest(
                 "t2",
