@@ -3,6 +3,9 @@ import type { ApiResponse, Page } from '@/api/types'
 
 export type MeetupStatus = 'RECRUITING' | 'ENDED' | 'CANCELED'
 
+export type DogSize = 'SMALL' | 'MEDIUM' | 'LARGE'
+export type DogLevel = 'LOW' | 'MEDIUM' | 'HIGH'
+
 export type Meetup = {
   id: number
   hostUserId: number
@@ -11,6 +14,10 @@ export type Meetup = {
   location: string
   maxParticipants: number
   scheduledAt: string
+  dogSize: DogSize | null
+  sociabilityLevel: DogLevel | null
+  reactivityLevel: DogLevel | null
+  neutered: boolean | null
   status: MeetupStatus
 }
 
@@ -20,6 +27,10 @@ export type CreateMeetupRequest = {
   location: string
   maxParticipants: number
   scheduledAt: string
+  dogSize?: DogSize
+  sociabilityLevel?: DogLevel
+  reactivityLevel?: DogLevel
+  neutered?: boolean
 }
 
 export type UpdateMeetupRequest = CreateMeetupRequest
@@ -27,9 +38,10 @@ export type UpdateMeetupRequest = CreateMeetupRequest
 export async function listMeetups(params: {
   page?: number
   size?: number
-  dogSize?: string
-  sociabilityLevel?: string
-  reactivityLevel?: string
+  dogSize?: DogSize
+  sociabilityLevel?: DogLevel
+  reactivityLevel?: DogLevel
+  neutered?: boolean
 }): Promise<Page<Meetup>> {
   const res = await http.get<ApiResponse<Page<Meetup>>>('/v1/meetups', { params })
   return unwrap(res.data)

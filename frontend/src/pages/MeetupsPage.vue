@@ -11,21 +11,89 @@
 
   <UiCard class="filters">
     <div class="filters__grid">
-      <UiSelect v-model="filters.dogSize" label="Dog size" placeholder="Any">
-        <option value="SMALL">SMALL</option>
-        <option value="MEDIUM">MEDIUM</option>
-        <option value="LARGE">LARGE</option>
-      </UiSelect>
-      <UiSelect v-model="filters.sociabilityLevel" label="Sociability" placeholder="Any">
-        <option value="LOW">LOW</option>
-        <option value="MEDIUM">MEDIUM</option>
-        <option value="HIGH">HIGH</option>
-      </UiSelect>
-      <UiSelect v-model="filters.reactivityLevel" label="Reactivity" placeholder="Any">
-        <option value="LOW">LOW</option>
-        <option value="MEDIUM">MEDIUM</option>
-        <option value="HIGH">HIGH</option>
-      </UiSelect>
+      <div class="radioGroup">
+        <div class="radioGroup__label">Dog size</div>
+        <div class="radioGroup__options">
+          <label class="radioOption">
+            <input v-model="filters.dogSize" type="radio" name="filterDogSize" value="" />
+            <span>Any</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.dogSize" type="radio" name="filterDogSize" value="SMALL" />
+            <span>소형</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.dogSize" type="radio" name="filterDogSize" value="MEDIUM" />
+            <span>중형</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.dogSize" type="radio" name="filterDogSize" value="LARGE" />
+            <span>대형</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="radioGroup">
+        <div class="radioGroup__label">Sociability</div>
+        <div class="radioGroup__options">
+          <label class="radioOption">
+            <input v-model="filters.sociabilityLevel" type="radio" name="filterSociability" value="" />
+            <span>Any</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.sociabilityLevel" type="radio" name="filterSociability" value="HIGH" />
+            <span>높음</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.sociabilityLevel" type="radio" name="filterSociability" value="MEDIUM" />
+            <span>보통</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.sociabilityLevel" type="radio" name="filterSociability" value="LOW" />
+            <span>낮음</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="radioGroup">
+        <div class="radioGroup__label">Reactivity</div>
+        <div class="radioGroup__options">
+          <label class="radioOption">
+            <input v-model="filters.reactivityLevel" type="radio" name="filterReactivity" value="" />
+            <span>Any</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.reactivityLevel" type="radio" name="filterReactivity" value="LOW" />
+            <span>차분</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.reactivityLevel" type="radio" name="filterReactivity" value="MEDIUM" />
+            <span>보통</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.reactivityLevel" type="radio" name="filterReactivity" value="HIGH" />
+            <span>예민</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="radioGroup">
+        <div class="radioGroup__label">Neutered</div>
+        <div class="radioGroup__options">
+          <label class="radioOption">
+            <input v-model="filters.neutered" type="radio" name="filterNeutered" value="" />
+            <span>Any</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.neutered" type="radio" name="filterNeutered" value="true" />
+            <span>예</span>
+          </label>
+          <label class="radioOption">
+            <input v-model="filters.neutered" type="radio" name="filterNeutered" value="false" />
+            <span>아니오</span>
+          </label>
+        </div>
+      </div>
 
       <div class="filters__actions">
         <UiButton variant="soft" @click="refresh">Apply</UiButton>
@@ -79,6 +147,94 @@
       <UiInput v-model="form.location" label="Location" placeholder="Gangnam, Seoul" required />
       <UiInput v-model="form.maxParticipants" label="Max participants" type="number" min="1" required />
       <UiInput v-model="form.scheduledAt" label="Scheduled at" type="datetime-local" required />
+
+      <div class="form__section">
+        <div class="form__sectionTitle">Preferences (optional)</div>
+
+        <div class="radioGroup">
+          <div class="radioGroup__label">Dog size</div>
+          <div class="radioGroup__options">
+            <label class="radioOption">
+              <input v-model="form.dogSize" type="radio" name="meetupDogSize" value="" />
+              <span>Any</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.dogSize" type="radio" name="meetupDogSize" value="SMALL" />
+              <span>소형</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.dogSize" type="radio" name="meetupDogSize" value="MEDIUM" />
+              <span>중형</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.dogSize" type="radio" name="meetupDogSize" value="LARGE" />
+              <span>대형</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="radioGroup">
+          <div class="radioGroup__label">Sociability</div>
+          <div class="radioGroup__options">
+            <label class="radioOption">
+              <input v-model="form.sociabilityLevel" type="radio" name="meetupSociability" value="" />
+              <span>Any</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.sociabilityLevel" type="radio" name="meetupSociability" value="HIGH" />
+              <span>높음</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.sociabilityLevel" type="radio" name="meetupSociability" value="MEDIUM" />
+              <span>보통</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.sociabilityLevel" type="radio" name="meetupSociability" value="LOW" />
+              <span>낮음</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="radioGroup">
+          <div class="radioGroup__label">Reactivity</div>
+          <div class="radioGroup__options">
+            <label class="radioOption">
+              <input v-model="form.reactivityLevel" type="radio" name="meetupReactivity" value="" />
+              <span>Any</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.reactivityLevel" type="radio" name="meetupReactivity" value="LOW" />
+              <span>차분</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.reactivityLevel" type="radio" name="meetupReactivity" value="MEDIUM" />
+              <span>보통</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.reactivityLevel" type="radio" name="meetupReactivity" value="HIGH" />
+              <span>예민</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="radioGroup">
+          <div class="radioGroup__label">Neutered</div>
+          <div class="radioGroup__options">
+            <label class="radioOption">
+              <input v-model="form.neutered" type="radio" name="meetupNeutered" value="" />
+              <span>Any</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.neutered" type="radio" name="meetupNeutered" value="true" />
+              <span>예</span>
+            </label>
+            <label class="radioOption">
+              <input v-model="form.neutered" type="radio" name="meetupNeutered" value="false" />
+              <span>아니오</span>
+            </label>
+          </div>
+        </div>
+      </div>
 
       <div class="form__actions">
         <UiButton type="submit" :disabled="modal.submitting">
@@ -222,7 +378,17 @@ import { useRouter } from 'vue-router'
 
 import puppyUrl from '@/assets/puppy.png'
 import { toApiClientError } from '@/api/http'
-import { cancelMeetup, createMeetup, endMeetup, getMeetup, listMeetups, updateMeetup, type Meetup } from '@/api/meetups'
+import {
+  cancelMeetup,
+  createMeetup,
+  endMeetup,
+  getMeetup,
+  listMeetups,
+  updateMeetup,
+  type DogLevel,
+  type DogSize,
+  type Meetup,
+} from '@/api/meetups'
 import { createCommunication, listCommunications, type Communication } from '@/api/communications'
 import { createChatMessage, listChatMessages, type ChatMessage } from '@/api/chats'
 import {
@@ -241,7 +407,6 @@ import UiCard from '@/components/ui/UiCard.vue'
 import UiDrawer from '@/components/ui/UiDrawer.vue'
 import UiInput from '@/components/ui/UiInput.vue'
 import UiModal from '@/components/ui/UiModal.vue'
-import UiSelect from '@/components/ui/UiSelect.vue'
 import UiTextarea from '@/components/ui/UiTextarea.vue'
 import { useToastStore } from '@/stores/toasts'
 import { useAuthStore } from '@/stores/auth'
@@ -251,10 +416,15 @@ const toasts = useToastStore()
 const auth = useAuthStore()
 const router = useRouter()
 
-const filters = reactive({
+type DogSizeOrAny = '' | DogSize
+type DogLevelOrAny = '' | DogLevel
+type BooleanOrAny = '' | 'true' | 'false'
+
+const filters = reactive<{ dogSize: DogSizeOrAny; sociabilityLevel: DogLevelOrAny; reactivityLevel: DogLevelOrAny; neutered: BooleanOrAny }>({
   dogSize: '',
   sociabilityLevel: '',
   reactivityLevel: '',
+  neutered: '',
 })
 
 const state = reactive<{ loading: boolean; page: Page<Meetup> | null; pageNum: number }>({
@@ -270,12 +440,26 @@ const modal = reactive<{ open: boolean; mode: 'create' | 'edit'; submitting: boo
   meetupId: null,
 })
 
-const form = reactive({
+const form = reactive<{
+  title: string
+  description: string
+  location: string
+  maxParticipants: string
+  scheduledAt: string
+  dogSize: DogSizeOrAny
+  sociabilityLevel: DogLevelOrAny
+  reactivityLevel: DogLevelOrAny
+  neutered: BooleanOrAny
+}>({
   title: '',
   description: '',
   location: '',
   maxParticipants: '4',
   scheduledAt: '',
+  dogSize: '',
+  sociabilityLevel: '',
+  reactivityLevel: '',
+  neutered: '',
 })
 
 const drawer = reactive<{ open: boolean; meetup: Meetup | null; busy: boolean }>({
@@ -363,9 +547,10 @@ async function refresh() {
     state.page = await listMeetups({
       page: state.pageNum,
       size: 12,
-      dogSize: filters.dogSize || undefined,
-      sociabilityLevel: filters.sociabilityLevel || undefined,
-      reactivityLevel: filters.reactivityLevel || undefined,
+      dogSize: filters.dogSize === '' ? undefined : filters.dogSize,
+      sociabilityLevel: filters.sociabilityLevel === '' ? undefined : filters.sociabilityLevel,
+      reactivityLevel: filters.reactivityLevel === '' ? undefined : filters.reactivityLevel,
+      neutered: filters.neutered === '' ? undefined : filters.neutered === 'true',
     })
   } catch (e) {
     const err = toApiClientError(e)
@@ -389,6 +574,7 @@ function resetFilters() {
   filters.dogSize = ''
   filters.sociabilityLevel = ''
   filters.reactivityLevel = ''
+  filters.neutered = ''
   state.pageNum = 0
   void refresh()
 }
@@ -416,6 +602,10 @@ function openCreate() {
   form.location = ''
   form.maxParticipants = '4'
   form.scheduledAt = ''
+  form.dogSize = ''
+  form.sociabilityLevel = ''
+  form.reactivityLevel = ''
+  form.neutered = ''
 }
 
 function openEdit(m: Meetup) {
@@ -429,6 +619,10 @@ function openEdit(m: Meetup) {
   form.description = m.description ?? ''
   form.location = m.location
   form.maxParticipants = String(m.maxParticipants)
+  form.dogSize = m.dogSize ?? ''
+  form.sociabilityLevel = m.sociabilityLevel ?? ''
+  form.reactivityLevel = m.reactivityLevel ?? ''
+  form.neutered = m.neutered === null ? '' : m.neutered ? 'true' : 'false'
   const d = new Date(m.scheduledAt)
   if (!Number.isNaN(d.getTime())) {
     const pad2 = (n: number) => String(n).padStart(2, '0')
@@ -473,6 +667,10 @@ async function submitModal() {
       location,
       maxParticipants,
       scheduledAt,
+      dogSize: form.dogSize === '' ? undefined : form.dogSize,
+      sociabilityLevel: form.sociabilityLevel === '' ? undefined : form.sociabilityLevel,
+      reactivityLevel: form.reactivityLevel === '' ? undefined : form.reactivityLevel,
+      neutered: form.neutered === '' ? undefined : form.neutered === 'true',
     }
 
     if (modal.mode === 'create') {

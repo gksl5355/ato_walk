@@ -55,25 +55,70 @@
           <UiInput v-model="signupForm.dogBreed" label="Breed" placeholder="Pomeranian" />
 
           <div class="survey__grid">
-            <UiSelect v-model="signupForm.dogSize" label="Size">
-              <option value="SMALL">SMALL</option>
-              <option value="MEDIUM">MEDIUM</option>
-              <option value="LARGE">LARGE</option>
-            </UiSelect>
-            <UiSelect v-model="signupForm.dogNeutered" label="Neutered">
-              <option value="true">YES</option>
-              <option value="false">NO</option>
-            </UiSelect>
-            <UiSelect v-model="signupForm.dogSociabilityLevel" label="Sociability">
-              <option value="LOW">LOW</option>
-              <option value="MEDIUM">MEDIUM</option>
-              <option value="HIGH">HIGH</option>
-            </UiSelect>
-            <UiSelect v-model="signupForm.dogReactivityLevel" label="Reactivity">
-              <option value="LOW">LOW</option>
-              <option value="MEDIUM">MEDIUM</option>
-              <option value="HIGH">HIGH</option>
-            </UiSelect>
+            <div class="radioGroup">
+              <div class="radioGroup__label">Size</div>
+              <div class="radioGroup__options">
+                <label class="radioOption">
+                  <input v-model="signupForm.dogSize" type="radio" name="dogSize" value="SMALL" />
+                  <span>소형</span>
+                </label>
+                <label class="radioOption">
+                  <input v-model="signupForm.dogSize" type="radio" name="dogSize" value="MEDIUM" />
+                  <span>중형</span>
+                </label>
+                <label class="radioOption">
+                  <input v-model="signupForm.dogSize" type="radio" name="dogSize" value="LARGE" />
+                  <span>대형</span>
+                </label>
+              </div>
+            </div>
+            <div class="radioGroup">
+              <div class="radioGroup__label">Neutered</div>
+              <div class="radioGroup__options">
+                <label class="radioOption">
+                  <input v-model="signupForm.dogNeutered" type="radio" name="dogNeutered" value="true" />
+                  <span>예</span>
+                </label>
+                <label class="radioOption">
+                  <input v-model="signupForm.dogNeutered" type="radio" name="dogNeutered" value="false" />
+                  <span>아니오</span>
+                </label>
+              </div>
+            </div>
+            <div class="radioGroup">
+              <div class="radioGroup__label">Sociability</div>
+              <div class="radioGroup__options">
+                <label class="radioOption">
+                  <input v-model="signupForm.dogSociabilityLevel" type="radio" name="dogSociability" value="HIGH" />
+                  <span>높음</span>
+                </label>
+                <label class="radioOption">
+                  <input v-model="signupForm.dogSociabilityLevel" type="radio" name="dogSociability" value="MEDIUM" />
+                  <span>보통</span>
+                </label>
+                <label class="radioOption">
+                  <input v-model="signupForm.dogSociabilityLevel" type="radio" name="dogSociability" value="LOW" />
+                  <span>낮음</span>
+                </label>
+              </div>
+            </div>
+            <div class="radioGroup">
+              <div class="radioGroup__label">Reactivity</div>
+              <div class="radioGroup__options">
+                <label class="radioOption">
+                  <input v-model="signupForm.dogReactivityLevel" type="radio" name="dogReactivity" value="LOW" />
+                  <span>차분</span>
+                </label>
+                <label class="radioOption">
+                  <input v-model="signupForm.dogReactivityLevel" type="radio" name="dogReactivity" value="MEDIUM" />
+                  <span>보통</span>
+                </label>
+                <label class="radioOption">
+                  <input v-model="signupForm.dogReactivityLevel" type="radio" name="dogReactivity" value="HIGH" />
+                  <span>예민</span>
+                </label>
+              </div>
+            </div>
           </div>
 
           <UiTextarea v-model="signupForm.dogNotes" label="Notes (optional)" placeholder="Anything to share" />
@@ -103,7 +148,6 @@ import { toApiClientError } from '@/api/http'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiInput from '@/components/ui/UiInput.vue'
-import UiSelect from '@/components/ui/UiSelect.vue'
 import UiTextarea from '@/components/ui/UiTextarea.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toasts'
@@ -355,6 +399,41 @@ async function onLogout() {
 .survey__grid {
   display: grid;
   gap: var(--s-3);
+}
+
+.radioGroup {
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-sm);
+  padding: var(--s-3);
+  background: var(--c-surface-2);
+}
+
+.radioGroup__label {
+  font-size: 12px;
+  color: var(--c-ink-2);
+  margin-bottom: var(--s-2);
+}
+
+.radioGroup__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.radioOption {
+  display: inline-flex;
+  gap: var(--s-2);
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--c-line);
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  user-select: none;
+}
+
+.radioOption input {
+  accent-color: var(--c-sky);
 }
 
 @media (min-width: 780px) {

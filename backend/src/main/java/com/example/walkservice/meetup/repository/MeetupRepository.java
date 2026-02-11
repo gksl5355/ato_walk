@@ -15,28 +15,29 @@ public interface MeetupRepository extends JpaRepository<Meetup, Long> {
             value = """
                     select distinct m.*
                     from meetups m
-                    join dogs d on d.user_id = m.host_user_id
                     where m.status = :status
-                      and (:dogSize is null or d.size = :dogSize)
-                      and (:sociabilityLevel is null or d.sociability_level = :sociabilityLevel)
-                      and (:reactivityLevel is null or d.reactivity_level = :reactivityLevel)
+                      and (:dogSize is null or m.dog_size = :dogSize)
+                      and (:sociabilityLevel is null or m.sociability_level = :sociabilityLevel)
+                      and (:reactivityLevel is null or m.reactivity_level = :reactivityLevel)
+                      and (:neutered is null or m.neutered = :neutered)
                     """,
             countQuery = """
-                    select count(distinct m.id)
+                    select count(m.id)
                     from meetups m
-                    join dogs d on d.user_id = m.host_user_id
                     where m.status = :status
-                      and (:dogSize is null or d.size = :dogSize)
-                      and (:sociabilityLevel is null or d.sociability_level = :sociabilityLevel)
-                      and (:reactivityLevel is null or d.reactivity_level = :reactivityLevel)
+                      and (:dogSize is null or m.dog_size = :dogSize)
+                      and (:sociabilityLevel is null or m.sociability_level = :sociabilityLevel)
+                      and (:reactivityLevel is null or m.reactivity_level = :reactivityLevel)
+                      and (:neutered is null or m.neutered = :neutered)
                     """,
             nativeQuery = true
     )
-    Page<Meetup> findAllRecruitingWithHostDogFilters(
+    Page<Meetup> findAllRecruitingWithMeetupFilters(
             @Param("status") String status,
             @Param("dogSize") String dogSize,
             @Param("sociabilityLevel") String sociabilityLevel,
             @Param("reactivityLevel") String reactivityLevel,
+            @Param("neutered") Boolean neutered,
             Pageable pageable
     );
 }

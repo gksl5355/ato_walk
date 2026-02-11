@@ -74,7 +74,8 @@ public class MeetupController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String dogSize,
             @RequestParam(required = false) String sociabilityLevel,
-            @RequestParam(required = false) String reactivityLevel
+            @RequestParam(required = false) String reactivityLevel,
+            @RequestParam(required = false) String neutered
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return ApiResponse.success(
@@ -82,7 +83,8 @@ public class MeetupController {
                         pageable,
                         normalizeDogSize(dogSize),
                         normalizeLevel("sociabilityLevel", sociabilityLevel),
-                        normalizeLevel("reactivityLevel", reactivityLevel)
+                        normalizeLevel("reactivityLevel", reactivityLevel),
+                        normalizeOptionalBoolean("neutered", neutered)
                 )
         );
     }
@@ -123,4 +125,22 @@ public class MeetupController {
         }
         return trimmed.toUpperCase();
     }
+
+    private Boolean normalizeOptionalBoolean(String field, String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        if (trimmed.equalsIgnoreCase("true")) {
+            return true;
+        }
+        if (trimmed.equalsIgnoreCase("false")) {
+            return false;
+        }
+        throw new ApiException("MEETUP_LIST_INVALID_FILTER", "Invalid " + field);
+    }
+
 }

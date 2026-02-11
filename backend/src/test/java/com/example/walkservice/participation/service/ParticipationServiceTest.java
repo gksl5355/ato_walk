@@ -8,12 +8,16 @@ import static org.mockito.BDDMockito.willThrow;
 
 import com.example.walkservice.common.exception.ApiException;
 import com.example.walkservice.common.security.BlockedWriteGuard;
+import com.example.walkservice.dog.entity.DogReactivityLevel;
+import com.example.walkservice.dog.entity.DogSize;
+import com.example.walkservice.dog.entity.DogSociabilityLevel;
 import com.example.walkservice.participation.dto.ParticipationResponse;
 import com.example.walkservice.participation.entity.Participation;
 import com.example.walkservice.participation.entity.ParticipationStatus;
 import com.example.walkservice.participation.repository.DogProfileLookupRepository;
 import com.example.walkservice.participation.repository.MeetupLookupRepository;
 import com.example.walkservice.participation.repository.ParticipationRepository;
+import com.example.walkservice.meetup.entity.MeetupStatus;
 import java.lang.reflect.Field;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -29,6 +33,23 @@ import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class ParticipationServiceTest {
+
+    private static MeetupLookupRepository.MeetupParticipationPolicy policy(
+            Long hostUserId,
+            DogSize dogSize,
+            DogSociabilityLevel sociabilityLevel,
+            DogReactivityLevel reactivityLevel,
+            Boolean neutered
+    ) {
+        return new MeetupLookupRepository.MeetupParticipationPolicy(
+                hostUserId,
+                MeetupStatus.RECRUITING,
+                dogSize,
+                sociabilityLevel,
+                reactivityLevel,
+                neutered
+        );
+    }
 
     @Mock
     private ParticipationRepository participationRepository;
@@ -61,7 +82,7 @@ class ParticipationServiceTest {
 
     @Test
     void requestParticipation_meetupMissing_throwsNotFound() {
-        given(meetupLookupRepository.findHostUserId(10L)).willReturn(null);
+        given(meetupLookupRepository.findParticipationPolicy(10L)).willReturn(null);
 
         ApiException ex = (ApiException) org.junit.jupiter.api.Assertions.assertThrows(
                 ApiException.class,
@@ -73,7 +94,7 @@ class ParticipationServiceTest {
 
     @Test
     void requestParticipation_alreadyApproved_throwsDuplicate() {
-        given(meetupLookupRepository.findHostUserId(1L)).willReturn(10L);
+        given(meetupLookupRepository.findParticipationPolicy(1L)).willReturn(policy(10L, null, null, null, null));
         given(participationRepository.existsByMeetupIdAndUserIdAndStatus(1L, 20L, ParticipationStatus.REQUESTED))
                 .willReturn(false);
         given(participationRepository.existsByMeetupIdAndUserIdAndStatus(1L, 20L, ParticipationStatus.APPROVED))
@@ -170,5 +191,23 @@ class ParticipationServiceTest {
         Field field = Participation.class.getDeclaredField("id");
         field.setAccessible(true);
         field.set(participation, id);
+    }
+
+    @Test
+    void requestParticipation_notEligible_throwsBadRequest() {
+        given(meetupLookupRepository.findParticipationPolicy(1L)).willReturn(policy(10L, DogSize.SMALL, null, null, null));
+        given(participationRepository.existsByMeetupIdAndUserIdAndStatus(1L, 20L, ParticipationStatus.REQUESTED))
+                .willReturn(false);
+        given(participationRepository.existsByMeetupIdAndUserIdAndStatus(1L, 20L, ParticipationStatus.APPROVED))
+                .willReturn(false);
+        given(dogProfileLookupRepository.findPrimaryDogProfileByUserId(20L)).willReturn(
+                new DogProfileLookupRepository.DogProfile(DogSize.MEDIUM, DogSociabilityLevel.MEDIUM, DogReactivityLevel.LOW, true)
+        );
+
+        ApiException ex = (ApiException) org.junit.jupiter.api.Assertions.assertThrows(
+                ApiException.class,
+                () -> participationService.requestParticipation(20L, 1L)
+        );
+        assertThat(ex.getCode()).isEqualTo("PARTICIPATION_REQUEST_NOT_ELIGIBLE");
     }
 }

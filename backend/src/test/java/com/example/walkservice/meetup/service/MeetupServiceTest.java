@@ -45,6 +45,10 @@ class MeetupServiceTest {
                 "loc",
                 3,
                 OffsetDateTime.now().plusDays(1),
+                null,
+                null,
+                null,
+                null,
                 MeetupStatus.RECRUITING,
                 OffsetDateTime.now()
         );
@@ -64,6 +68,10 @@ class MeetupServiceTest {
                 "loc",
                 3,
                 OffsetDateTime.now().plusDays(1),
+                null,
+                null,
+                null,
+                null,
                 MeetupStatus.RECRUITING,
                 OffsetDateTime.now()
         );
@@ -82,6 +90,10 @@ class MeetupServiceTest {
                 "loc",
                 3,
                 OffsetDateTime.now().plusDays(1),
+                null,
+                null,
+                null,
+                null,
                 MeetupStatus.ENDED,
                 OffsetDateTime.now()
         );
@@ -101,6 +113,10 @@ class MeetupServiceTest {
                 "loc",
                 3,
                 OffsetDateTime.now().plusDays(1),
+                null,
+                null,
+                null,
+                null,
                 MeetupStatus.CANCELED,
                 OffsetDateTime.now()
         );
@@ -120,6 +136,10 @@ class MeetupServiceTest {
                 "loc",
                 3,
                 OffsetDateTime.now().plusDays(1),
+                null,
+                null,
+                null,
+                null,
                 MeetupStatus.ENDED,
                 OffsetDateTime.now()
         );
@@ -130,7 +150,11 @@ class MeetupServiceTest {
                 "d2",
                 "loc2",
                 5,
-                OffsetDateTime.now().plusDays(2)
+                OffsetDateTime.now().plusDays(2),
+                null,
+                null,
+                null,
+                null
         );
 
         assertThatThrownBy(() -> meetupService.updateMeetup(10L, 1L, request))
@@ -147,6 +171,10 @@ class MeetupServiceTest {
                 "loc",
                 3,
                 OffsetDateTime.now().plusDays(1),
+                null,
+                null,
+                null,
+                null,
                 MeetupStatus.RECRUITING,
                 OffsetDateTime.now()
         );
@@ -159,7 +187,11 @@ class MeetupServiceTest {
                 null,
                 "loc",
                 3,
-                OffsetDateTime.now().plusDays(1)
+                OffsetDateTime.now().plusDays(1),
+                null,
+                null,
+                null,
+                null
         );
 
         assertThat(meetupService.createMeetup(10L, request).getId()).isEqualTo(99L);
@@ -176,7 +208,11 @@ class MeetupServiceTest {
                 null,
                 "loc",
                 3,
-                OffsetDateTime.now().plusDays(1)
+                OffsetDateTime.now().plusDays(1),
+                null,
+                null,
+                null,
+                null
         );
 
         ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
@@ -226,7 +262,11 @@ class MeetupServiceTest {
                 "d2",
                 "loc2",
                 5,
-                OffsetDateTime.now().plusDays(2)
+                OffsetDateTime.now().plusDays(2),
+                null,
+                null,
+                null,
+                null
         );
 
         ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(

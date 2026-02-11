@@ -60,6 +60,10 @@
 - location
 - max_participants
 - scheduled_at
+- dog_size (ENUM, nullable)
+- sociability_level (ENUM, nullable)
+- reactivity_level (ENUM, nullable)
+- neutered (BOOLEAN, nullable)
 - status (ENUM)
 - created_at
 
@@ -143,6 +147,24 @@ Constraints:
 - RECRUITING
 - ENDED
 - CANCELED
+
+### meetups.dog_size
+
+- SMALL
+- MEDIUM
+- LARGE
+
+### meetups.sociability_level
+
+- LOW
+- MEDIUM
+- HIGH
+
+### meetups.reactivity_level
+
+- LOW
+- MEDIUM
+- HIGH
 
 ### participations.status
 

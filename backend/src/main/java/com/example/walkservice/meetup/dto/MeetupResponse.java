@@ -1,6 +1,9 @@
 package com.example.walkservice.meetup.dto;
 
 import com.example.walkservice.meetup.entity.MeetupStatus;
+import com.example.walkservice.dog.entity.DogReactivityLevel;
+import com.example.walkservice.dog.entity.DogSize;
+import com.example.walkservice.dog.entity.DogSociabilityLevel;
 import java.time.OffsetDateTime;
 
 public class MeetupResponse {
@@ -12,6 +15,10 @@ public class MeetupResponse {
     private final String location;
     private final Integer maxParticipants;
     private final OffsetDateTime scheduledAt;
+    private final DogSize dogSize;
+    private final DogSociabilityLevel sociabilityLevel;
+    private final DogReactivityLevel reactivityLevel;
+    private final Boolean neutered;
     private final MeetupStatus status;
 
     public MeetupResponse(
@@ -22,6 +29,10 @@ public class MeetupResponse {
             String location,
             Integer maxParticipants,
             OffsetDateTime scheduledAt,
+            DogSize dogSize,
+            DogSociabilityLevel sociabilityLevel,
+            DogReactivityLevel reactivityLevel,
+            Boolean neutered,
             MeetupStatus status
     ) {
         this.id = id;
@@ -31,6 +42,10 @@ public class MeetupResponse {
         this.location = location;
         this.maxParticipants = maxParticipants;
         this.scheduledAt = scheduledAt;
+        this.dogSize = dogSize;
+        this.sociabilityLevel = sociabilityLevel;
+        this.reactivityLevel = reactivityLevel;
+        this.neutered = neutered;
         this.status = status;
     }
 
@@ -60,6 +75,22 @@ public class MeetupResponse {
 
     public OffsetDateTime getScheduledAt() {
         return scheduledAt;
+    }
+
+    public DogSize getDogSize() {
+        return dogSize;
+    }
+
+    public DogSociabilityLevel getSociabilityLevel() {
+        return sociabilityLevel;
+    }
+
+    public DogReactivityLevel getReactivityLevel() {
+        return reactivityLevel;
+    }
+
+    public Boolean getNeutered() {
+        return neutered;
     }
 
     public MeetupStatus getStatus() {

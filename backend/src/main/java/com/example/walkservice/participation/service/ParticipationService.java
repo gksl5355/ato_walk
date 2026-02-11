@@ -38,10 +38,12 @@ public class ParticipationService {
     public ParticipationResponse requestParticipation(Long actorUserId, Long meetupId) {
         blockedWriteGuard.ensureNotBlocked(actorUserId, "PARTICIPATION_REQUEST_FORBIDDEN");
 
-        Long hostUserId = meetupLookupRepository.findHostUserId(meetupId);
-        if (hostUserId == null) {
+        MeetupLookupRepository.MeetupParticipationPolicy policy = meetupLookupRepository.findParticipationPolicy(meetupId);
+        if (policy == null) {
             throw new ApiException("MEETUP_FIND_NOT_FOUND", "Meetup not found");
         }
+
+        Long hostUserId = policy.hostUserId();
         if (hostUserId.equals(actorUserId)) {
             throw new ApiException("PARTICIPATION_REQUEST_FORBIDDEN", "Host cannot request own meetup");
         }
@@ -53,6 +55,11 @@ public class ParticipationService {
             throw new ApiException("PARTICIPATION_REQUEST_DUPLICATE", "You are already approved for this meetup");
         }
 
+        DogProfileLookupRepository.DogProfile dogProfile = dogProfileLookupRepository.findPrimaryDogProfileByUserId(actorUserId);
+        if (!isEligible(policy, dogProfile)) {
+            throw new ApiException("PARTICIPATION_REQUEST_NOT_ELIGIBLE", "Dog profile does not match meetup preferences");
+        }
+
         Participation participation = new Participation(
                 meetupId,
                 actorUserId,
@@ -62,6 +69,32 @@ public class ParticipationService {
 
         Participation saved = participationRepository.save(participation);
         return toResponse(saved);
+    }
+
+    private boolean isEligible(MeetupLookupRepository.MeetupParticipationPolicy policy, DogProfileLookupRepository.DogProfile dogProfile) {
+        if (policy.dogSize() == null
+                && policy.sociabilityLevel() == null
+                && policy.reactivityLevel() == null
+                && policy.neutered() == null) {
+            return true;
+        }
+        if (dogProfile == null) {
+            return false;
+        }
+
+        if (policy.dogSize() != null && policy.dogSize() != dogProfile.size()) {
+            return false;
+        }
+        if (policy.sociabilityLevel() != null && policy.sociabilityLevel() != dogProfile.sociabilityLevel()) {
+            return false;
+        }
+        if (policy.reactivityLevel() != null && policy.reactivityLevel() != dogProfile.reactivityLevel()) {
+            return false;
+        }
+        if (policy.neutered() != null && !policy.neutered().equals(dogProfile.neutered())) {
+            return false;
+        }
+        return true;
     }
 
     @Transactional(readOnly = true)

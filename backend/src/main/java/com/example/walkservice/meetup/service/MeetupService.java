@@ -36,6 +36,10 @@ public class MeetupService {
                 request.getLocation(),
                 request.getMaxParticipants(),
                 request.getScheduledAt(),
+                request.getDogSize(),
+                request.getSociabilityLevel(),
+                request.getReactivityLevel(),
+                request.getNeutered(),
                 MeetupStatus.RECRUITING,
                 OffsetDateTime.now()
         );
@@ -85,7 +89,11 @@ public class MeetupService {
                 request.getDescription(),
                 request.getLocation(),
                 request.getMaxParticipants(),
-                request.getScheduledAt()
+                request.getScheduledAt(),
+                request.getDogSize(),
+                request.getSociabilityLevel(),
+                request.getReactivityLevel(),
+                request.getNeutered()
         );
 
         return toResponse(meetup);
@@ -103,14 +111,16 @@ public class MeetupService {
             Pageable pageable,
             String dogSize,
             String sociabilityLevel,
-            String reactivityLevel
+            String reactivityLevel,
+            Boolean neutered
     ) {
         return meetupRepository
-                .findAllRecruitingWithHostDogFilters(
+                .findAllRecruitingWithMeetupFilters(
                         MeetupStatus.RECRUITING.name(),
                         dogSize,
                         sociabilityLevel,
                         reactivityLevel,
+                        neutered,
                         pageable
                 )
                 .map(this::toResponse);
@@ -125,6 +135,10 @@ public class MeetupService {
                 meetup.getLocation(),
                 meetup.getMaxParticipants(),
                 meetup.getScheduledAt(),
+                meetup.getDogSize(),
+                meetup.getSociabilityLevel(),
+                meetup.getReactivityLevel(),
+                meetup.getNeutered(),
                 meetup.getStatus()
         );
     }
