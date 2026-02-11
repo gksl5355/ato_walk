@@ -421,19 +421,50 @@ async function onLogout() {
 }
 
 .radioOption {
+  position: relative;
   display: inline-flex;
-  gap: var(--s-2);
   align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--c-line);
-  background: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  user-select: none;
 }
 
 .radioOption input {
-  accent-color: var(--c-sky);
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.radioOption span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 12px;
+  border: 1px solid rgba(27, 31, 35, 0.16);
+  background: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+  color: var(--c-ink-2);
+}
+
+.radioOption span::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(27, 31, 35, 0.24);
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.radioOption input:checked + span {
+  color: var(--c-ink);
+  border-color: rgba(88, 169, 224, 0.42);
+  background: rgba(88, 169, 224, 0.18);
+}
+
+.radioOption input:checked + span::before {
+  border-color: rgba(88, 169, 224, 0.7);
+  background: linear-gradient(180deg, rgba(150, 214, 255, 1), rgba(88, 169, 224, 1));
+  box-shadow: inset 0 0 0 3px #fff;
 }
 
 @media (min-width: 780px) {

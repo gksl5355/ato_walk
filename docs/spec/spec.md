@@ -14,6 +14,7 @@ AI 및 모든 개발 행위는 본 문서에 명시된 문서들만을 기준으
 - 기술 선택 및 제약 (trd.md)
 - 애플리케이션 (architecture.md)
 - Repository (repo-structure.md)
+- Scope 로딩 규칙 (scopes.md)
 - Code Templates (templates.md)
 - Coding Conventions (conventions.md)
 - ERD (erd.md)
@@ -32,11 +33,12 @@ AI 및 모든 개발 행위는 본 문서에 명시된 문서들만을 기준으
 
 1. architecture.md  
 2. repo-structure.md  
-3. prd.md  
-4. trd.md  
-5. erd.md  
-6. templates.md  
-7. conventions.md  
+3. scopes.md  
+4. prd.md  
+5. trd.md  
+6. erd.md  
+7. templates.md  
+8. conventions.md  
 
 위 순서보다 낮은 문서는 상위 문서를 위반할 수 없다.
 
@@ -54,9 +56,18 @@ AI 및 모든 개발 행위는 본 문서에 명시된 문서들만을 기준으
 - `spec/trd.md`
 - `spec/architecture.md`
 - `spec/repo-structure.md`
+- `spec/scopes.md`
 - `spec/erd.md`
 - `spec/templates.md`
 - `spec/conventions.md`
+
+### Scope Modules (AI 기준 문서)
+- `spec/commerce/spec.md`
+- `spec/commerce/prd.md`
+- `spec/commerce/erd.md`
+- `spec/commerce/openapi.yaml`
+- `spec/commerce/integration.md`
+- `spec/commerce/implementation-plan.md`
 
 ---
 

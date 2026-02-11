@@ -159,13 +159,21 @@ docs/
 │
 └─ spec/
    ├─ spec.md
+   ├─ scopes.md
    ├─ prd.md
    ├─ trd.md
    ├─ architecture.md
    ├─ repo-structure.md
    ├─ conventions.md
    ├─ templates.md
-   └─ erd.md
+   ├─ erd.md
+   └─ commerce/
+      ├─ spec.md
+      ├─ prd.md
+      ├─ erd.md
+      ├─ openapi.yaml
+      ├─ integration.md
+      └─ implementation-plan.md
 
 ```
 

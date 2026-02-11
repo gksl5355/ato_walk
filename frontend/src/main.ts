@@ -9,6 +9,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import HomePage from '@/pages/HomePage.vue'
 import MeetupsPage from '@/pages/MeetupsPage.vue'
+import ShopCartPage from '@/pages/shop/ShopCartPage.vue'
+import ShopOrderDetailPage from '@/pages/shop/ShopOrderDetailPage.vue'
+import ShopOrdersPage from '@/pages/shop/ShopOrdersPage.vue'
+import ShopProductDetailPage from '@/pages/shop/ShopProductDetailPage.vue'
+import ShopProductsPage from '@/pages/shop/ShopProductsPage.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useToastStore } from '@/stores/toasts'
 
@@ -17,6 +22,16 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: HomePage },
     { path: '/meetups', name: 'meetups', component: MeetupsPage, meta: { requiresAuth: true } },
+    { path: '/shop', name: 'shop-products', component: ShopProductsPage },
+    { path: '/shop/products/:productId', name: 'shop-product-detail', component: ShopProductDetailPage },
+    { path: '/shop/cart', name: 'shop-cart', component: ShopCartPage, meta: { requiresAuth: true } },
+    { path: '/shop/orders', name: 'shop-orders', component: ShopOrdersPage, meta: { requiresAuth: true } },
+    {
+      path: '/shop/orders/:orderId',
+      name: 'shop-order-detail',
+      component: ShopOrderDetailPage,
+      meta: { requiresAuth: true },
+    },
   ],
 })
 

@@ -1,0 +1,729 @@
+openapi: 3.0.3
+info:
+  title: Walkservice Commerce API
+  version: 1.0.0
+  description: |
+    Commerce scope API contract.
+    All responses follow the common envelope:
+    - success: true + data
+    - success: false + error
+servers:
+  - url: /api/v1
+tags:
+  - name: Products
+  - name: Cart
+  - name: Orders
+  - name: Points
+paths:
+  /products:
+    get:
+      tags: [Products]
+      summary: List products
+      operationId: listProducts
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - in: query
+          name: category
+          schema:
+            $ref: '#/components/schemas/ProductCategory'
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/ProductStatus'
+      responses:
+        '200':
+          description: Product page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProductPage'
+
+  /products/{productId}:
+    get:
+      tags: [Products]
+      summary: Get product detail
+      operationId: getProduct
+      parameters:
+        - in: path
+          name: productId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProduct'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /cart-items:
+    get:
+      tags: [Cart]
+      summary: Get my cart items
+      operationId: getMyCartItems
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Cart items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCartItemList'
+        '401':
+          $ref: '#/components/responses/AuthRequired'
+    post:
+      tags: [Cart]
+      summary: Add item to cart
+      operationId: addCartItem
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCartItemRequest'
+      responses:
+        '200':
+          description: Added cart item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCartItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/AuthRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /cart-items/{cartItemId}:
+    put:
+      tags: [Cart]
+      summary: Update cart item quantity
+      operationId: updateCartItem
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: cartItemId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCartItemRequest'
+      responses:
+        '200':
+          description: Updated cart item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseCartItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/AuthRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Cart]
+      summary: Remove cart item
+      operationId: deleteCartItem
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: cartItemId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseVoid'
+        '401':
+          $ref: '#/components/responses/AuthRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /orders:
+    post:
+      tags: [Orders]
+      summary: Create order from cart
+      operationId: createOrder
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '200':
+          description: Created order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrder'
+        '400':
+          description: |
+            Bad request.
+            Possible error codes:
+            - ORDER_CREATE_POINT_INSUFFICIENT
+            - ORDER_CREATE_STOCK_NOT_ENOUGH
+            - ORDER_CREATE_CART_EMPTY
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/AuthRequired'
+    get:
+      tags: [Orders]
+      summary: List my orders
+      operationId: listMyOrders
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Order page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrderSummaryPage'
+        '401':
+          $ref: '#/components/responses/AuthRequired'
+
+  /orders/{orderId}:
+    get:
+      tags: [Orders]
+      summary: Get my order detail
+      operationId: getMyOrder
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Order detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrder'
+        '401':
+          $ref: '#/components/responses/AuthRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /orders/{orderId}/cancel:
+    post:
+      tags: [Orders]
+      summary: Cancel my order
+      operationId: cancelOrder
+      security:
+        - sessionAuth: []
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Canceled order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseOrder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/AuthRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /users/me/points:
+    get:
+      tags: [Points]
+      summary: Get my point balance
+      operationId: getMyPoints
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Current point balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseUserPoints'
+        '401':
+          $ref: '#/components/responses/AuthRequired'
+
+  /points/transactions:
+    get:
+      tags: [Points]
+      summary: List my point transactions
+      operationId: listMyPointTransactions
+      security:
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Point transaction page
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponsePointTransactionPage'
+        '401':
+          $ref: '#/components/responses/AuthRequired'
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
+
+  parameters:
+    Page:
+      in: query
+      name: page
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      in: query
+      name: size
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    AuthRequired:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+  schemas:
+    ProductCategory:
+      type: string
+      enum: [FEED, SNACK, TOY]
+
+    ProductStatus:
+      type: string
+      enum: [ON_SALE, SOLD_OUT, HIDDEN]
+
+    OrderStatus:
+      type: string
+      enum: [CREATED, CANCELED]
+
+    Product:
+      type: object
+      required: [id, name, category, price, stockQuantity, status, createdAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 255
+        category:
+          $ref: '#/components/schemas/ProductCategory'
+        price:
+          type: integer
+          format: int64
+          minimum: 0
+        stockQuantity:
+          type: integer
+          minimum: 0
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ProductSummary:
+      type: object
+      required: [id, name, category, price, stockQuantity, status]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 255
+        category:
+          $ref: '#/components/schemas/ProductCategory'
+        price:
+          type: integer
+          format: int64
+          minimum: 0
+        stockQuantity:
+          type: integer
+          minimum: 0
+        status:
+          $ref: '#/components/schemas/ProductStatus'
+
+    CartItem:
+      type: object
+      required: [id, productId, productName, quantity, unitPrice, subtotalPrice]
+      properties:
+        id:
+          type: integer
+          format: int64
+        productId:
+          type: integer
+          format: int64
+        productName:
+          type: string
+          maxLength: 255
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 99
+        unitPrice:
+          type: integer
+          format: int64
+          minimum: 0
+        subtotalPrice:
+          type: integer
+          format: int64
+          minimum: 0
+
+    OrderItem:
+      type: object
+      required: [id, productId, quantity, unitPrice, subtotalPrice]
+      properties:
+        id:
+          type: integer
+          format: int64
+        productId:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 99
+        unitPrice:
+          type: integer
+          format: int64
+          minimum: 0
+        subtotalPrice:
+          type: integer
+          format: int64
+          minimum: 0
+
+    Order:
+      type: object
+      required: [id, status, totalPrice, createdAt, items]
+      properties:
+        id:
+          type: integer
+          format: int64
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        totalPrice:
+          type: integer
+          format: int64
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    OrderSummary:
+      type: object
+      required: [id, status, totalPrice, createdAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        totalPrice:
+          type: integer
+          format: int64
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+
+    PaymentMethod:
+      type: string
+      enum: [POINT]
+
+    CreateOrderRequest:
+      type: object
+      properties:
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+
+    PointTransactionType:
+      type: string
+      enum: [CHARGE, SPEND, REFUND]
+
+    UserPoints:
+      type: object
+      required: [balance]
+      properties:
+        balance:
+          type: integer
+          format: int64
+          minimum: 0
+
+    PointTransaction:
+      type: object
+      required: [id, type, amount, balanceAfter, createdAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+        orderId:
+          type: integer
+          format: int64
+          nullable: true
+        type:
+          $ref: '#/components/schemas/PointTransactionType'
+        amount:
+          type: integer
+          format: int64
+          minimum: 1
+        balanceAfter:
+          type: integer
+          format: int64
+          minimum: 0
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateCartItemRequest:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 99
+
+    UpdateCartItemRequest:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 99
+
+    PageMeta:
+      type: object
+      required: [page, size, totalElements, totalPages]
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    ProductPageData:
+      type: object
+      required: [content, page]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductSummary'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    OrderSummaryPageData:
+      type: object
+      required: [content, page]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderSummary'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    PointTransactionPageData:
+      type: object
+      required: [content, page]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PointTransaction'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+
+    ApiError:
+      type: object
+      required: [code, message, details]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+
+    ApiErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        error:
+          $ref: '#/components/schemas/ApiError'
+
+    ApiResponseProduct:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/Product'
+
+    ApiResponseProductPage:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/ProductPageData'
+
+    ApiResponseCartItem:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/CartItem'
+
+    ApiResponseCartItemList:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+
+    ApiResponseOrder:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/Order'
+
+    ApiResponseOrderSummaryPage:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/OrderSummaryPageData'
+
+    ApiResponseUserPoints:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/UserPoints'
+
+    ApiResponsePointTransactionPage:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          $ref: '#/components/schemas/PointTransactionPageData'
+
+    ApiResponseVoid:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          type: object
+          nullable: true

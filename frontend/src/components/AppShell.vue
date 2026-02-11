@@ -9,11 +9,13 @@
 
         <nav class="nav">
           <RouterLink class="nav__link" to="/meetups">Meetups</RouterLink>
+          <RouterLink class="nav__link" to="/shop">Shopping</RouterLink>
         </nav>
 
         <div class="auth">
           <template v-if="auth.isLoggedIn">
             <span class="auth__email">{{ auth.email }}</span>
+            <span class="auth__point">Point {{ pointText }}</span>
             <UiButton size="sm" variant="ghost" @click="onLogout">Logout</UiButton>
           </template>
           <template v-else>
@@ -34,8 +36,10 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
+import { getMyPointBalance } from '@/api/commerce'
 import UiButton from '@/components/ui/UiButton.vue'
 import UiToastHost from '@/components/ui/UiToastHost.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -45,10 +49,32 @@ import { toApiClientError } from '@/api/http'
 const auth = useAuthStore()
 const toasts = useToastStore()
 const router = useRouter()
+const pointBalance = ref<number | null>(null)
+
+const pointText = computed(() => {
+  if (pointBalance.value === null) {
+    return '-'
+  }
+  return new Intl.NumberFormat('ko-KR').format(pointBalance.value)
+})
+
+async function loadPointBalance() {
+  if (!auth.isLoggedIn) {
+    pointBalance.value = null
+    return
+  }
+  try {
+    const point = await getMyPointBalance()
+    pointBalance.value = point.balance
+  } catch {
+    pointBalance.value = null
+  }
+}
 
 async function onLogout() {
   try {
     await auth.logout()
+    pointBalance.value = null
     toasts.push({ tone: 'success', title: 'Logged out', message: 'Session ended.' })
   } catch (e) {
     const err = toApiClientError(e)
@@ -57,6 +83,17 @@ async function onLogout() {
     await router.push('/')
   }
 }
+
+watch(
+  () => auth.isLoggedIn,
+  () => {
+    void loadPointBalance()
+  },
+)
+
+onMounted(() => {
+  void loadPointBalance()
+})
 </script>
 
 <style scoped>
@@ -134,9 +171,25 @@ async function onLogout() {
   overflow: hidden;
 }
 
+.auth__point {
+  display: none;
+  font-size: 12px;
+  color: var(--c-ink);
+  border: 1px solid rgba(27, 31, 35, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 700;
+}
+
 @media (min-width: 720px) {
   .auth__email {
     display: inline;
+  }
+
+  .auth__point {
+    display: inline-flex;
+    align-items: center;
   }
 }
 

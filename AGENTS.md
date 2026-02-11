@@ -11,17 +11,25 @@
 - Document priority order (highest wins on conflicts):
   1. `docs/spec/architecture.md`
   2. `docs/spec/repo-structure.md`
-  3. `docs/spec/prd.md`
-  4. `docs/spec/trd.md`
-  5. `docs/spec/erd.md`
-  6. `docs/spec/templates.md`
-  7. `docs/spec/conventions.md`
+  3. `docs/spec/scopes.md`
+  4. `docs/spec/prd.md`
+  5. `docs/spec/trd.md`
+  6. `docs/spec/erd.md`
+  7. `docs/spec/templates.md`
+  8. `docs/spec/conventions.md`
 
 Rules from `docs/spec/spec.md`:
 - Agents MUST rely on `docs/spec/**` for implementation decisions.
 - `docs/design/**` is background context only; not a binding implementation spec.
 - Do not implement features/structures/rules that are not explicitly specified.
 - If a spec change is needed: update the relevant spec doc first.
+
+## Scope Activation Rules (Mandatory)
+- Every task MUST declare active scope: `walk`, `commerce`, or `global`.
+- Scope loading rules are defined in `docs/spec/scopes.md`.
+- `walk` work must load only `global + walk` spec docs.
+- `commerce` work must load only `global + commerce` spec docs.
+- Cross-scope edits require explicit update to `docs/spec/commerce/integration.md` and `docs/spec/scopes.md`.
 
 ## Repository Structure
 Intended fixed structure (per `docs/spec/repo-structure.md`):

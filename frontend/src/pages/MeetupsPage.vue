@@ -15,19 +15,19 @@
         <div class="radioGroup__label">Dog size</div>
         <div class="radioGroup__options">
           <label class="radioOption">
-            <input v-model="filters.dogSize" type="radio" name="filterDogSize" value="" />
+            <input :checked="filters.dogSize.length === 0" type="checkbox" @change="clearMultiFromEvent(filters.dogSize, $event)" />
             <span>Any</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.dogSize" type="radio" name="filterDogSize" value="SMALL" />
+            <input :checked="filters.dogSize.includes('SMALL')" type="checkbox" @change="toggleMultiFromEvent(filters.dogSize, 'SMALL', $event)" />
             <span>소형</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.dogSize" type="radio" name="filterDogSize" value="MEDIUM" />
+            <input :checked="filters.dogSize.includes('MEDIUM')" type="checkbox" @change="toggleMultiFromEvent(filters.dogSize, 'MEDIUM', $event)" />
             <span>중형</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.dogSize" type="radio" name="filterDogSize" value="LARGE" />
+            <input :checked="filters.dogSize.includes('LARGE')" type="checkbox" @change="toggleMultiFromEvent(filters.dogSize, 'LARGE', $event)" />
             <span>대형</span>
           </label>
         </div>
@@ -37,19 +37,19 @@
         <div class="radioGroup__label">Sociability</div>
         <div class="radioGroup__options">
           <label class="radioOption">
-            <input v-model="filters.sociabilityLevel" type="radio" name="filterSociability" value="" />
+            <input :checked="filters.sociabilityLevel.length === 0" type="checkbox" @change="clearMultiFromEvent(filters.sociabilityLevel, $event)" />
             <span>Any</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.sociabilityLevel" type="radio" name="filterSociability" value="HIGH" />
+            <input :checked="filters.sociabilityLevel.includes('HIGH')" type="checkbox" @change="toggleMultiFromEvent(filters.sociabilityLevel, 'HIGH', $event)" />
             <span>높음</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.sociabilityLevel" type="radio" name="filterSociability" value="MEDIUM" />
+            <input :checked="filters.sociabilityLevel.includes('MEDIUM')" type="checkbox" @change="toggleMultiFromEvent(filters.sociabilityLevel, 'MEDIUM', $event)" />
             <span>보통</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.sociabilityLevel" type="radio" name="filterSociability" value="LOW" />
+            <input :checked="filters.sociabilityLevel.includes('LOW')" type="checkbox" @change="toggleMultiFromEvent(filters.sociabilityLevel, 'LOW', $event)" />
             <span>낮음</span>
           </label>
         </div>
@@ -59,19 +59,19 @@
         <div class="radioGroup__label">Reactivity</div>
         <div class="radioGroup__options">
           <label class="radioOption">
-            <input v-model="filters.reactivityLevel" type="radio" name="filterReactivity" value="" />
+            <input :checked="filters.reactivityLevel.length === 0" type="checkbox" @change="clearMultiFromEvent(filters.reactivityLevel, $event)" />
             <span>Any</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.reactivityLevel" type="radio" name="filterReactivity" value="LOW" />
+            <input :checked="filters.reactivityLevel.includes('LOW')" type="checkbox" @change="toggleMultiFromEvent(filters.reactivityLevel, 'LOW', $event)" />
             <span>차분</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.reactivityLevel" type="radio" name="filterReactivity" value="MEDIUM" />
+            <input :checked="filters.reactivityLevel.includes('MEDIUM')" type="checkbox" @change="toggleMultiFromEvent(filters.reactivityLevel, 'MEDIUM', $event)" />
             <span>보통</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.reactivityLevel" type="radio" name="filterReactivity" value="HIGH" />
+            <input :checked="filters.reactivityLevel.includes('HIGH')" type="checkbox" @change="toggleMultiFromEvent(filters.reactivityLevel, 'HIGH', $event)" />
             <span>예민</span>
           </label>
         </div>
@@ -81,15 +81,15 @@
         <div class="radioGroup__label">Neutered</div>
         <div class="radioGroup__options">
           <label class="radioOption">
-            <input v-model="filters.neutered" type="radio" name="filterNeutered" value="" />
+            <input :checked="filters.neutered.length === 0" type="checkbox" @change="clearMultiFromEvent(filters.neutered, $event)" />
             <span>Any</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.neutered" type="radio" name="filterNeutered" value="true" />
+            <input :checked="filters.neutered.includes('true')" type="checkbox" @change="toggleMultiFromEvent(filters.neutered, 'true', $event)" />
             <span>예</span>
           </label>
           <label class="radioOption">
-            <input v-model="filters.neutered" type="radio" name="filterNeutered" value="false" />
+            <input :checked="filters.neutered.includes('false')" type="checkbox" @change="toggleMultiFromEvent(filters.neutered, 'false', $event)" />
             <span>아니오</span>
           </label>
         </div>
@@ -155,19 +155,19 @@
           <div class="radioGroup__label">Dog size</div>
           <div class="radioGroup__options">
             <label class="radioOption">
-              <input v-model="form.dogSize" type="radio" name="meetupDogSize" value="" />
+              <input :checked="form.dogSize.length === 0" type="checkbox" @change="clearMultiFromEvent(form.dogSize, $event)" />
               <span>Any</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.dogSize" type="radio" name="meetupDogSize" value="SMALL" />
+              <input :checked="form.dogSize.includes('SMALL')" type="checkbox" @change="toggleMultiFromEvent(form.dogSize, 'SMALL', $event)" />
               <span>소형</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.dogSize" type="radio" name="meetupDogSize" value="MEDIUM" />
+              <input :checked="form.dogSize.includes('MEDIUM')" type="checkbox" @change="toggleMultiFromEvent(form.dogSize, 'MEDIUM', $event)" />
               <span>중형</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.dogSize" type="radio" name="meetupDogSize" value="LARGE" />
+              <input :checked="form.dogSize.includes('LARGE')" type="checkbox" @change="toggleMultiFromEvent(form.dogSize, 'LARGE', $event)" />
               <span>대형</span>
             </label>
           </div>
@@ -177,19 +177,19 @@
           <div class="radioGroup__label">Sociability</div>
           <div class="radioGroup__options">
             <label class="radioOption">
-              <input v-model="form.sociabilityLevel" type="radio" name="meetupSociability" value="" />
+              <input :checked="form.sociabilityLevel.length === 0" type="checkbox" @change="clearMultiFromEvent(form.sociabilityLevel, $event)" />
               <span>Any</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.sociabilityLevel" type="radio" name="meetupSociability" value="HIGH" />
+              <input :checked="form.sociabilityLevel.includes('HIGH')" type="checkbox" @change="toggleMultiFromEvent(form.sociabilityLevel, 'HIGH', $event)" />
               <span>높음</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.sociabilityLevel" type="radio" name="meetupSociability" value="MEDIUM" />
+              <input :checked="form.sociabilityLevel.includes('MEDIUM')" type="checkbox" @change="toggleMultiFromEvent(form.sociabilityLevel, 'MEDIUM', $event)" />
               <span>보통</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.sociabilityLevel" type="radio" name="meetupSociability" value="LOW" />
+              <input :checked="form.sociabilityLevel.includes('LOW')" type="checkbox" @change="toggleMultiFromEvent(form.sociabilityLevel, 'LOW', $event)" />
               <span>낮음</span>
             </label>
           </div>
@@ -199,19 +199,19 @@
           <div class="radioGroup__label">Reactivity</div>
           <div class="radioGroup__options">
             <label class="radioOption">
-              <input v-model="form.reactivityLevel" type="radio" name="meetupReactivity" value="" />
+              <input :checked="form.reactivityLevel.length === 0" type="checkbox" @change="clearMultiFromEvent(form.reactivityLevel, $event)" />
               <span>Any</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.reactivityLevel" type="radio" name="meetupReactivity" value="LOW" />
+              <input :checked="form.reactivityLevel.includes('LOW')" type="checkbox" @change="toggleMultiFromEvent(form.reactivityLevel, 'LOW', $event)" />
               <span>차분</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.reactivityLevel" type="radio" name="meetupReactivity" value="MEDIUM" />
+              <input :checked="form.reactivityLevel.includes('MEDIUM')" type="checkbox" @change="toggleMultiFromEvent(form.reactivityLevel, 'MEDIUM', $event)" />
               <span>보통</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.reactivityLevel" type="radio" name="meetupReactivity" value="HIGH" />
+              <input :checked="form.reactivityLevel.includes('HIGH')" type="checkbox" @change="toggleMultiFromEvent(form.reactivityLevel, 'HIGH', $event)" />
               <span>예민</span>
             </label>
           </div>
@@ -221,15 +221,15 @@
           <div class="radioGroup__label">Neutered</div>
           <div class="radioGroup__options">
             <label class="radioOption">
-              <input v-model="form.neutered" type="radio" name="meetupNeutered" value="" />
+              <input :checked="form.neutered.length === 0" type="checkbox" @change="clearMultiFromEvent(form.neutered, $event)" />
               <span>Any</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.neutered" type="radio" name="meetupNeutered" value="true" />
+              <input :checked="form.neutered.includes('true')" type="checkbox" @change="toggleMultiFromEvent(form.neutered, 'true', $event)" />
               <span>예</span>
             </label>
             <label class="radioOption">
-              <input v-model="form.neutered" type="radio" name="meetupNeutered" value="false" />
+              <input :checked="form.neutered.includes('false')" type="checkbox" @change="toggleMultiFromEvent(form.neutered, 'false', $event)" />
               <span>아니오</span>
             </label>
           </div>
@@ -416,15 +416,13 @@ const toasts = useToastStore()
 const auth = useAuthStore()
 const router = useRouter()
 
-type DogSizeOrAny = '' | DogSize
-type DogLevelOrAny = '' | DogLevel
-type BooleanOrAny = '' | 'true' | 'false'
+type NeuteredChoice = 'true' | 'false'
 
-const filters = reactive<{ dogSize: DogSizeOrAny; sociabilityLevel: DogLevelOrAny; reactivityLevel: DogLevelOrAny; neutered: BooleanOrAny }>({
-  dogSize: '',
-  sociabilityLevel: '',
-  reactivityLevel: '',
-  neutered: '',
+const filters = reactive<{ dogSize: DogSize[]; sociabilityLevel: DogLevel[]; reactivityLevel: DogLevel[]; neutered: NeuteredChoice[] }>({
+  dogSize: [],
+  sociabilityLevel: [],
+  reactivityLevel: [],
+  neutered: [],
 })
 
 const state = reactive<{ loading: boolean; page: Page<Meetup> | null; pageNum: number }>({
@@ -446,20 +444,20 @@ const form = reactive<{
   location: string
   maxParticipants: string
   scheduledAt: string
-  dogSize: DogSizeOrAny
-  sociabilityLevel: DogLevelOrAny
-  reactivityLevel: DogLevelOrAny
-  neutered: BooleanOrAny
+  dogSize: DogSize[]
+  sociabilityLevel: DogLevel[]
+  reactivityLevel: DogLevel[]
+  neutered: NeuteredChoice[]
 }>({
   title: '',
   description: '',
   location: '',
   maxParticipants: '4',
   scheduledAt: '',
-  dogSize: '',
-  sociabilityLevel: '',
-  reactivityLevel: '',
-  neutered: '',
+  dogSize: [],
+  sociabilityLevel: [],
+  reactivityLevel: [],
+  neutered: [],
 })
 
 const drawer = reactive<{ open: boolean; meetup: Meetup | null; busy: boolean }>({
@@ -547,10 +545,10 @@ async function refresh() {
     state.page = await listMeetups({
       page: state.pageNum,
       size: 12,
-      dogSize: filters.dogSize === '' ? undefined : filters.dogSize,
-      sociabilityLevel: filters.sociabilityLevel === '' ? undefined : filters.sociabilityLevel,
-      reactivityLevel: filters.reactivityLevel === '' ? undefined : filters.reactivityLevel,
-      neutered: filters.neutered === '' ? undefined : filters.neutered === 'true',
+      dogSize: filters.dogSize.length === 1 ? filters.dogSize[0] : undefined,
+      sociabilityLevel: filters.sociabilityLevel.length === 1 ? filters.sociabilityLevel[0] : undefined,
+      reactivityLevel: filters.reactivityLevel.length === 1 ? filters.reactivityLevel[0] : undefined,
+      neutered: filters.neutered.length === 1 ? filters.neutered[0] === 'true' : undefined,
     })
   } catch (e) {
     const err = toApiClientError(e)
@@ -571,10 +569,10 @@ function requireLogin(): boolean {
 }
 
 function resetFilters() {
-  filters.dogSize = ''
-  filters.sociabilityLevel = ''
-  filters.reactivityLevel = ''
-  filters.neutered = ''
+  filters.dogSize = []
+  filters.sociabilityLevel = []
+  filters.reactivityLevel = []
+  filters.neutered = []
   state.pageNum = 0
   void refresh()
 }
@@ -602,10 +600,10 @@ function openCreate() {
   form.location = ''
   form.maxParticipants = '4'
   form.scheduledAt = ''
-  form.dogSize = ''
-  form.sociabilityLevel = ''
-  form.reactivityLevel = ''
-  form.neutered = ''
+  form.dogSize = []
+  form.sociabilityLevel = []
+  form.reactivityLevel = []
+  form.neutered = []
 }
 
 function openEdit(m: Meetup) {
@@ -619,10 +617,10 @@ function openEdit(m: Meetup) {
   form.description = m.description ?? ''
   form.location = m.location
   form.maxParticipants = String(m.maxParticipants)
-  form.dogSize = m.dogSize ?? ''
-  form.sociabilityLevel = m.sociabilityLevel ?? ''
-  form.reactivityLevel = m.reactivityLevel ?? ''
-  form.neutered = m.neutered === null ? '' : m.neutered ? 'true' : 'false'
+  form.dogSize = m.dogSize === null ? [] : [m.dogSize]
+  form.sociabilityLevel = m.sociabilityLevel === null ? [] : [m.sociabilityLevel]
+  form.reactivityLevel = m.reactivityLevel === null ? [] : [m.reactivityLevel]
+  form.neutered = m.neutered === null ? [] : [m.neutered ? 'true' : 'false']
   const d = new Date(m.scheduledAt)
   if (!Number.isNaN(d.getTime())) {
     const pad2 = (n: number) => String(n).padStart(2, '0')
@@ -667,10 +665,10 @@ async function submitModal() {
       location,
       maxParticipants,
       scheduledAt,
-      dogSize: form.dogSize === '' ? undefined : form.dogSize,
-      sociabilityLevel: form.sociabilityLevel === '' ? undefined : form.sociabilityLevel,
-      reactivityLevel: form.reactivityLevel === '' ? undefined : form.reactivityLevel,
-      neutered: form.neutered === '' ? undefined : form.neutered === 'true',
+      dogSize: form.dogSize.length === 1 ? form.dogSize[0] : undefined,
+      sociabilityLevel: form.sociabilityLevel.length === 1 ? form.sociabilityLevel[0] : undefined,
+      reactivityLevel: form.reactivityLevel.length === 1 ? form.reactivityLevel[0] : undefined,
+      neutered: form.neutered.length === 1 ? form.neutered[0] === 'true' : undefined,
     }
 
     if (modal.mode === 'create') {
@@ -690,6 +688,41 @@ async function submitModal() {
   } finally {
     modal.submitting = false
   }
+}
+
+function toggleMulti<T extends string>(target: T[], value: T, checked: boolean) {
+  if (checked) {
+    if (!target.includes(value)) {
+      target.push(value)
+    }
+    return
+  }
+  const idx = target.indexOf(value)
+  if (idx >= 0) {
+    target.splice(idx, 1)
+  }
+}
+
+function clearMulti(target: string[], checked: boolean) {
+  if (checked) {
+    target.splice(0, target.length)
+  }
+}
+
+function isChecked(event: Event): boolean {
+  const el = event.target
+  if (!(el instanceof HTMLInputElement)) {
+    return false
+  }
+  return el.checked
+}
+
+function toggleMultiFromEvent<T extends string>(target: T[], value: T, event: Event) {
+  toggleMulti(target, value, isChecked(event))
+}
+
+function clearMultiFromEvent(target: string[], event: Event) {
+  clearMulti(target, isChecked(event))
 }
 
 async function openDetails(m: Meetup) {
@@ -983,6 +1016,72 @@ void refresh()
   gap: var(--s-2);
   justify-content: flex-start;
   flex-wrap: wrap;
+}
+
+.radioGroup {
+  border: 1px solid rgba(27, 31, 35, 0.12);
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.72);
+  padding: var(--s-3);
+}
+
+.radioGroup__label {
+  font-size: 12px;
+  color: var(--c-ink-2);
+  margin-bottom: var(--s-2);
+}
+
+.radioGroup__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.radioOption {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.radioOption input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.radioOption span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 12px;
+  border: 1px solid rgba(27, 31, 35, 0.16);
+  background: rgba(255, 255, 255, 0.76);
+  font-size: 13px;
+  color: var(--c-ink-2);
+}
+
+.radioOption span::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(27, 31, 35, 0.24);
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.radioOption input:checked + span {
+  color: var(--c-ink);
+  border-color: rgba(88, 169, 224, 0.42);
+  background: rgba(88, 169, 224, 0.18);
+}
+
+.radioOption input:checked + span::before {
+  border-color: rgba(88, 169, 224, 0.7);
+  background: linear-gradient(180deg, rgba(150, 214, 255, 1), rgba(88, 169, 224, 1));
+  box-shadow: inset 0 0 0 2px #fff;
 }
 
 .loading {

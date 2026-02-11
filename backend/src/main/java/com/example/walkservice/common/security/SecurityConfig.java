@@ -28,6 +28,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.POST, "/api/v1/signup").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/login").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/products").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                 .anyRequest().authenticated());
 
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
